@@ -1,0 +1,29 @@
+=over
+
+=item 1 bullet point one
+
+=item * bullet point two
+
+=item 3 bullet point three
+
+=pod
+
+=encoding utf8
+
+paragraph one
+
+	verbatim paragraph one
+	verbatim paragraph one
+	verbatim paragraph one
+
+paragraph two
+paragraph two
+paragraph two
+paragraph two
+
+	verbatim paragraph two
+	verbatim paragraph two
+	verbatim paragraph two
+
+=back
+

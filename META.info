@@ -1,0 +1,9 @@
+{
+    "name" : "Pod::Perl5",
+    "version" : "0.01",
+    "description" : "The great new Pod::Perl5",
+    "author" : "David Farrell",
+    "depends" : [ ],
+    "source-url" : ""
+}
+
