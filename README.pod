@@ -1,5 +1,3 @@
-=pod
-
 =head1 NAME
 
 example-perl5.pod
@@ -9,12 +7,15 @@ example-perl5.pod
 This is an example pod file written in Perl 5 style pod (as opposed to Perl 6 style).
 The grammar for this module lives at L<Pod::Perl5::Grammar>.
 
-
 =head1 SYNOPSIS
 
   use Pod::Perl5;
 
-  my $parse_tree = Pod::Perl5.parse('some.pod');
+  my $match = Pod::Perl5.parse_file('/some.pod');
+
+  # or:
+
+  my $match = Pod::Perl5::parse_string($pod);
 
 =head1 AUTHOR
 
@@ -25,4 +26,3 @@ David Farrell (C) 2015
 
 FreeBSD, see LICENSE file
 
-=cut
