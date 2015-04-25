@@ -39,14 +39,14 @@ grammar Pod::Perl5::Grammar
   # list processing
   token over_back { <over>
                     [
-                      <item> | <paragraph> | <verbatim_paragraph> | <for> |
+                      <_item> | <paragraph> | <verbatim_paragraph> | <for> |
                       <begin_end> | <pod> | <encoding>
                     ]*
                     <back>
                   }
 
   token over      { ^^\=over [\h<[0..9]>]? <blank_line> }
-  token item      { ^^\=item \h+ [\*|<[0..9]>+] [\h*<paragraph>]|[\h*<blank_line><paragraph>] }
+  token _item      { ^^\=item \h+ [\*|<[0..9]>+] [\h*<paragraph>]|[\h*<blank_line><paragraph>] }
   token back      { ^^\=back <blank_line> }
 
   # format processing
