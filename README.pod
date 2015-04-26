@@ -16,6 +16,8 @@ Pod::Perl5
 
 =item * improve text extraction for headings and paragraphs (separate text and blank line)
 
+=item * add checks that begin/end format names match
+
 =back
 
 =head1 DESCRIPTION
