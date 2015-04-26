@@ -6,18 +6,6 @@ Pod::Perl5
 
 0.01
 
-=head1 TODO
-
-=over 2
-
-=item * enable lists within lists
-
-=item * enable formatting codes within formatting codes
-
-=item * improve text extraction for headings and paragraphs (separate text and blank line)
-
-=back
-
 =head1 DESCRIPTION
 
 This is a Perl6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.

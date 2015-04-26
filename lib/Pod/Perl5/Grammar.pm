@@ -33,7 +33,7 @@ grammar Pod::Perl5::Grammar
     \n\h*?[\n|$]
   }
 
-  # tokens for matching streams of text: name, text and section
+  # tokens for matching streams of text
   token name
   {
     <-[\s\>\/\|]>+
@@ -41,6 +41,10 @@ grammar Pod::Perl5::Grammar
   token text
   {
     <-[\v\>\/\|]>+
+  }
+  token multiline_text
+  {
+    <-[ \> ]>+
   }
   token section
   {
@@ -84,10 +88,11 @@ grammar Pod::Perl5::Grammar
   token head4     { ^^\=head4 \h+ <paragraph> }
 
   # basic formatting codes
+  # TODO enable formatting within formatting
   token format_codes  { [<italic>|<bold>|<code>|<link>] }
-  token italic        { I\< .+? \>  }
-  token bold          { B\< .+? \>  }
-  token code          { C\< .+? \>  }
+  token italic        { I\< <multiline_text> \>  }
+  token bold          { B\< <multiline_text> \>  }
+  token code          { C\< <multiline_text> \>  }
 
   # links are more complicated
   token link          { L\<
