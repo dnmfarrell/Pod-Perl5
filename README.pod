@@ -10,6 +10,8 @@ Pod::Perl5
 
 =over 2
 
+=item * be able to parse inline POD (mixed with Perl 5 code)
+
 =item * enable lists within lists
 
 =item * enable formatting codes within formatting codes
@@ -22,15 +24,33 @@ Pod::Perl5
 
 This is a Perl6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
 
+The parser can parse *.pod files and supports all pod syntax. See L</TODO> for remaining issues.
+
 =head1 SYNOPSIS
 
   use Pod::Perl5;
 
   my $match = Pod::Perl5.parse_file('/some.pod');
-
-  # or:
-
   my $match = Pod::Perl5::parse_string($pod);
+
+
+=head2 INSTALL
+
+Requires panda and Perl 6:
+
+  $ clone https://github.com/dnmfarrell/Pod-Perl5.git
+  $ cd Pod-Perl5
+  $ panda install ./
+
+=head1 TESTING
+
+The parser has a decent test suite. You'll need Perl 5 and Perl 6 installed to run it with:
+
+  $ prove --exec perl6 -r
+
+Or run individual test files with Perl 6:
+
+  $ perl6 t/01_basic.t
 
 =head1 AUTHOR
 
