@@ -4,7 +4,19 @@
 
 =item * bullet point two
 
-=item 3 bullet point three
+=item some_code() bullet point three
+
+=item NoPara
+
+=item NoParaTrailingWhitespace  
+
+=item ParaNextLine
+
+This is the para for the bullet point
+
+=item ParaNextLineTrailWhitespace 
+
+This is the para for the bullet point after trailing whitespace
 
 =pod
 
@@ -27,3 +39,12 @@ paragraph two
 
 =back
 
+=over 4
+
+=item 1
+
+=item 2
+
+=item 3
+
+=back

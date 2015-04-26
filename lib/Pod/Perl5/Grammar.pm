@@ -1,10 +1,14 @@
-use Grammar::Tracer;
+#use Grammar::Tracer;
 
 grammar Pod::Perl5::Grammar
 {
   token TOP
   {
-    ^ [<paragraph>|<verbatim_paragraph>|<over_back>]* $
+    ^ [
+        <paragraph>|<verbatim_paragraph>|<over_back>|<for>|<begin_end>|
+        <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>
+      ]*
+    $
   }
 
   # verbatim paragraph is a paragraph that begins with horizontal whitespace
@@ -13,22 +17,34 @@ grammar Pod::Perl5::Grammar
     ^^\h+? \S.+? <blank_line>
   }
 
-  # paragraph is a stream beginning with a non-whitespace char (and not =)
+  # paragraph is a stream of text and/or format codes
+  # beginning with a non-whitespace char (and not =) or a format code
   token paragraph
   {
-    <?!before \=> \S .+? <blank_line>
+    <?!before \=>
+    [<format_codes>|<?!before <format_codes>> \S]
+    [<format_codes>|<?!before <format_codes>> . ]*?
+    <blank_line>
   }
 
   # blank line is a stream of whitespace surrounded by newlines
   token blank_line
   {
-    \n\h*?\n
+    \n\h*?[\n|$]
   }
 
-  # name is a continuous stream of text without whitespace
+  # tokens for matching streams of text: name, text and section
   token name
   {
-    \S+
+    <-[\s\>\/\|]>+
+  }
+  token text
+  {
+    <-[\v\>\/\|]>+
+  }
+  token section
+  {
+    <-[\v\>\/\|]>+
   }
 
   # command paragraphs
@@ -46,20 +62,44 @@ grammar Pod::Perl5::Grammar
                   }
 
   token over      { ^^\=over [\h<[0..9]>]? <blank_line> }
-  token _item      { ^^\=item \h+ [\*|<[0..9]>+] [\h*<paragraph>]|[\h*<blank_line><paragraph>] }
+  token _item     { ^^\=item \h+ <name>
+                    [
+                        [ \h+ <paragraph>  ]
+                      | [ \h* <blank_line> <paragraph>? ]
+                    ]
+                  }
   token back      { ^^\=back <blank_line> }
 
   # format processing
-  token begin_end { <begin> .* <end> }
-  token begin     { ^^\=begin \h <name> <blank_line>}
-  token end       { ^^\=end \h <name> <blank_line>  }
+  # TODO check the name matches for the begin/end pair
+  token begin_end { <begin> .*? <end> }
+  token begin     { ^^\=begin \h+ <name> <blank_line>}
+  token end       { ^^\=end \h+ <name>  <blank_line>  }
   token for       { ^^\=for \h <name> \h+ <paragraph> }
 
   # headers
-  token head1     { ^^\=head1 \h <paragraph> }
-  token head2     { ^^\=head2 \h <paragraph> }
-  token head3     { ^^\=head3 \h <paragraph> }
-  token head4     { ^^\=head4 \h <paragraph> }
+  token head1     { ^^\=head1 \h+ <paragraph> }
+  token head2     { ^^\=head2 \h+ <paragraph> }
+  token head3     { ^^\=head3 \h+ <paragraph> }
+  token head4     { ^^\=head4 \h+ <paragraph> }
 
-  # TODO formatting codes
+  # basic formatting codes
+  token format_codes  { [<italic>|<bold>|<code>|<link>] }
+  token italic        { I\< .+? \>  }
+  token bold          { B\< .+? \>  }
+  token code          { C\< .+? \>  }
+
+  # links are more complicated
+  token link          { L\<
+                         [
+                            [ <url>  ]
+                          | [ <text> \| <url> ]
+                          | [ <name> \| <section> ]
+                          | [ <name> [ \|? \/ <section> ]? ]
+                          | [ \/ <section> ]
+                          | [ <text> \| <name> \/ <section> ]
+                         ]
+                        \>
+                      }
+  token url           { [ https? | ftp ] '://' <-[\v\>\|]>+ }
 }
