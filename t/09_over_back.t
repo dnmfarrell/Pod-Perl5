@@ -9,20 +9,23 @@ ok my $match = Pod::Perl5::parse_file('test-corpus/over_back.pod'), 'parse over_
 is $match<over_back>.elems, 3, 'Parser extracted two over/back pair';
 
 # tests for list 1
-is $match<over_back>[0]<_item>[0]<name>.Str, '1', 'Parser extracted name from bullet point one';
-is $match<over_back>[0]<_item>[0]<paragraph>.Str, "bullet point one\n\n",
+is $match<over_back>[0]<_item>[0]<name>.Str, '1',
+  'Parser extracted name from bullet point one';
+is $match<over_back>[0]<_item>[0]<paragraph><text>.Str, "bullet point one",
   'Parser extracted paragraph from bullet point one';
 
-is $match<over_back>[0]<_item>[1]<name>.Str, '*', 'Parser extracted name from bullet point two';
-is $match<over_back>[0]<_item>[1]<paragraph>.Str, "bullet point two\n\n",
+is $match<over_back>[0]<_item>[1]<name>.Str, '*',
+  'Parser extracted name from bullet point two';
+
+is $match<over_back>[0]<_item>[1]<paragraph><text>.Str, "bullet point two",
   'Parser extracted paragraph from bullet point two';
 
 is $match<over_back>[0]<_item>[2]<name>.Str,
   'some_code()',
   'Parser extracted name from bullet point three';
 
-is $match<over_back>[0]<_item>[2]<paragraph>.Str,
-  "bullet point three\n\n",
+is $match<over_back>[0]<_item>[2]<paragraph><text>.Str,
+  "bullet point three",
   'Parser extracted paragraph from bullet point three';
 
 is $match<over_back>[0]<_item>[3]<name>.Str, 'NoPara',
@@ -36,16 +39,16 @@ is $match<over_back>[0]<_item>[5]<name>,
   'ParaNextLine',
   'Parser extracted name from bullet point six';
 
-is $match<over_back>[0]<_item>[5]<paragraph>.Str,
-  "This is the para for the bullet point\n\n",
+is $match<over_back>[0]<_item>[5]<paragraph><text>.Str,
+  "This is the para for the bullet point",
   'Parser extracted paragraph from bullet point seven';
 
 is $match<over_back>[0]<_item>[6]<name>,
   'ParaNextLineTrailWhitespace',
   'Parser extracted name from bullet point seven';
 
-is $match<over_back>[0]<_item>[6]<paragraph>.Str,
-  "This is the para for the bullet point after trailing whitespace\n\n",
+is $match<over_back>[0]<_item>[6]<paragraph><text>.Str,
+  "This is the para for the bullet point after trailing whitespace",
   'Parser extracted paragraph from bullet point seven';
 
 is $match<over_back>[0]<pod>.Str,

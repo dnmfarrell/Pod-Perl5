@@ -4,7 +4,7 @@ Pod::Perl5
 
 =head1 VERSION
 
-0.01
+0.02
 
 =head1 TODO
 
@@ -13,8 +13,6 @@ Pod::Perl5
 =item * be able to parse inline POD (mixed with Perl 5 code)
 
 =item * enable formatting codes within formatting codes
-
-=item * improve text extraction for headings and paragraphs (separate text and blank line)
 
 =item * add checks that begin/end format names match
 

@@ -12,19 +12,25 @@ grammar Pod::Perl5::Grammar
   }
 
   # verbatim paragraph is a paragraph that begins with horizontal whitespace
+  # and ends in a blank line
   token verbatim_paragraph
   {
     ^^\h+? \S.+? <blank_line>
   }
 
-  # paragraph is a stream of text and/or format codes
-  # beginning with a non-whitespace char (and not =) or a format code
   token paragraph
+  {
+    <text> <blank_line>
+  }
+
+  # paragraph text is a stream of text and/or format codes
+  # beginning with a non-whitespace char (and not =) or a format code
+  # and not containing a blank line
+  token text
   {
     <?!before \=>
     [<format_codes>|<?!before <format_codes>> \S]
-    [<format_codes>|<?!before <format_codes>> . ]*?
-    <blank_line>
+    [<format_codes>|<?!before [<format_codes>|<blank_line>]> . ]*
   }
 
   # blank line is a stream of whitespace surrounded by newlines
@@ -33,19 +39,29 @@ grammar Pod::Perl5::Grammar
     \n\h*?[\n|$]
   }
 
-  # tokens for matching streams of text
+  # tokens for matching streams of text in formatting codes
+  # none can contain ">" as it's the closing char of a formatting
+  # sequence
   token name
   {
     <-[\s\>\/\|]>+
   }
-  token text
+
+  token link_text
   {
     <-[\v\>\/\|]>+
   }
+
+  # formatting codes can break over lines, but not blank lines. Should add that
+  # restriction here
   token multiline_text
   {
     <-[ \> ]>+
   }
+
+  # section has the same definition as text, but we have a different token
+  # in order to be able to distinguish between text and section when they're
+  # both present in a link tag eg. "L<This is text|Module::Name/ThisIsTheSection>"
   token section
   {
     <-[\v\>\/\|]>+
@@ -98,11 +114,11 @@ grammar Pod::Perl5::Grammar
   token link          { L\<
                          [
                             [ <url>  ]
-                          | [ <text> \| <url> ]
+                          | [ <link_text> \| <url> ]
                           | [ <name> \| <section> ]
                           | [ <name> [ \|? \/ <section> ]? ]
                           | [ \/ <section> ]
-                          | [ <text> \| <name> \/ <section> ]
+                          | [ <link_text> \| <name> \/ <section> ]
                          ]
                         \>
                       }
