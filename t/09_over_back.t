@@ -1,12 +1,12 @@
 use Test;
 use lib 'lib';
 
-plan 18;
+plan 20;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
 ok my $match = Pod::Perl5::parse_file('test-corpus/over_back.pod'), 'parse over_back';
-is $match<over_back>.elems, 2, 'Parser extracted two over/back pair';
+is $match<over_back>.elems, 3, 'Parser extracted two over/back pair';
 
 # tests for list 1
 is $match<over_back>[0]<_item>[0]<name>.Str, '1', 'Parser extracted name from bullet point one';
@@ -59,3 +59,11 @@ is $match<over_back>[1]<over>.Str,
 
 is $match<over_back>[1]<_item>.elems,
   3, 'Extracted three items from the second list';
+
+# tests for list 3
+is $match<over_back>[2]<over_back>[0]<_item>.elems,
+  2, 'The inner list has two items';
+
+is $match<over_back>[2]<_item>.elems,
+  3, 'The outer list has three items';
+

@@ -48,3 +48,22 @@ paragraph two
 =item 3
 
 =back
+
+=over 4
+
+=item outer list bullet one
+
+=item outer list bullet two
+
+=over 8
+
+=item inner list bullet one
+
+=item inner list bullet two
+
+=back
+
+=item outer list bullet three
+
+=back
+

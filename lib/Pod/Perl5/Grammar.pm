@@ -60,7 +60,7 @@ grammar Pod::Perl5::Grammar
   token over_back { <over>
                     [
                       <_item> | <paragraph> | <verbatim_paragraph> | <for> |
-                      <begin_end> | <pod> | <encoding>
+                      <begin_end> | <pod> | <encoding> | <over_back>
                     ]*
                     <back>
                   }

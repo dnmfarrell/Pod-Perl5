@@ -8,7 +8,7 @@ module Pod::Perl5:ver<0.01>
     return parse_string($pod);
   }
 
-  our sub parse_string (Str:D $pod)
+  our sub parse_string (Str:D $pod, $action?)
   {
     my $match = Pod::Perl5::Grammar.parse($pod);
 
