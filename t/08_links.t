@@ -24,7 +24,7 @@ is $match<paragraph>[3]<text><format_codes>[0]<link><name>.Str,
 is $match<paragraph>[4]<text><format_codes>[0]<link><name>.Str,
 'Some::Name', 'Parser extracted the correct name';
 
-is $match<paragraph>[5]<text><format_codes>[0]<link><link_text>.Str,
+is $match<paragraph>[5]<text><format_codes>[0]<link><singleline_text>.Str,
 'Some text', 'Parser extracted the correct text';
 
 is $match<paragraph>[6]<text><format_codes>[0]<link><url>.Str,

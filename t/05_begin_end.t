@@ -10,8 +10,12 @@ is $match<begin_end>.elems, 2, 'Parser extracted two begin/end pairs';
 
 # block 1
 is $match<begin_end>[0]<begin><name>.Str, 'HTML', 'The name from first begin pair is HTML';
-is $match<begin_end>[0]<end><name>.Str, 'HTML', 'The name from first end pair is HTML';
+is $match<begin_end>[0]<begin_end_content>.Str,
+  qq/<a href="">Some link<\/a>\n\n/,
+  'Extract the text from begin/end block';
 
 # block 2
 is $match<begin_end>[1]<begin><name>.Str, 'some_text', 'The name from first begin pair is some_text';
-is $match<begin_end>[1]<end><name>.Str, 'some_text', 'The name from first end pair is some_text';
+is $match<begin_end>[1]<begin_end_content>.Str,
+  "This is just some text\n\n",
+  'Extract the text from begin/end block';

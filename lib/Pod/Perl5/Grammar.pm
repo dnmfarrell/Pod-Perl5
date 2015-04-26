@@ -11,11 +11,9 @@ grammar Pod::Perl5::Grammar
     $
   }
 
-  # verbatim paragraph is a paragraph that begins with horizontal whitespace
-  # and ends in a blank line
   token verbatim_paragraph
   {
-    ^^\h+? \S.+? <blank_line>
+    <verbatim_text> <blank_line>
   }
 
   token paragraph
@@ -24,13 +22,19 @@ grammar Pod::Perl5::Grammar
   }
 
   # paragraph text is a stream of text and/or format codes
-  # beginning with a non-whitespace char (and not =) or a format code
+  # beginning with a non-whitespace char (not =) or a format code
   # and not containing a blank line
   token text
   {
     <?!before \=>
     [<format_codes>|<?!before <format_codes>> \S]
     [<format_codes>|<?!before [<format_codes>|<blank_line>]> . ]*
+  }
+
+  # verbatim text is text that begins on a newline with horizontal whitespace
+  token verbatim_text
+  {
+    ^^\h+? \S [ <?!before <blank_line>> . ]*
   }
 
   # blank line is a stream of whitespace surrounded by newlines
@@ -40,26 +44,26 @@ grammar Pod::Perl5::Grammar
   }
 
   # tokens for matching streams of text in formatting codes
-  # none can contain ">" as it's the closing char of a formatting
-  # sequence
+  # none of them can contain ">" as it's the closing char of 
+  # a formatting sequence
   token name
   {
     <-[\s\>\/\|]>+
   }
 
-  token link_text
+  token singleline_text
   {
     <-[\v\>\/\|]>+
   }
 
-  # formatting codes can break over lines, but not blank lines. Should add that
-  # restriction here
+  # multinline text can break over lines, but not blank lines.
+  # TODO add that restriction here
   token multiline_text
   {
     <-[ \> ]>+
   }
 
-  # section has the same definition as text, but we have a different token
+  # section has the same definition as singleline text, but we have a different token
   # in order to be able to distinguish between text and section when they're
   # both present in a link tag eg. "L<This is text|Module::Name/ThisIsTheSection>"
   token section
@@ -91,17 +95,27 @@ grammar Pod::Perl5::Grammar
   token back      { ^^\=back <blank_line> }
 
   # format processing
-  # TODO check the name matches for the begin/end pair
-  token begin_end { <begin> .*? <end> }
-  token begin     { ^^\=begin \h+ <name> <blank_line>}
-  token end       { ^^\=end \h+ <name>  <blank_line>  }
+  # begin/end blocks cannot be nested
+  # so we store the current begin block name
+  # to use for matching the end block
+  my $begin_end_name;
+
+  token begin_end { <begin> <begin_end_content> <end> }
+  token begin     { ^^\=begin \h+ <name> <blank_line> { $begin_end_name = $/<name>.Str } }
+  token end       { ^^\=end \h+ $begin_end_name <blank_line> }
+
+  token begin_end_content
+  {
+    [<?!before <end>>. ]*
+  }
+
   token for       { ^^\=for \h <name> \h+ <paragraph> }
 
   # headers
-  token head1     { ^^\=head1 \h+ <paragraph> }
-  token head2     { ^^\=head2 \h+ <paragraph> }
-  token head3     { ^^\=head3 \h+ <paragraph> }
-  token head4     { ^^\=head4 \h+ <paragraph> }
+  token head1     { ^^\=head1 \h+ <singleline_text> <blank_line> }
+  token head2     { ^^\=head2 \h+ <singleline_text> <blank_line> }
+  token head3     { ^^\=head3 \h+ <singleline_text> <blank_line> }
+  token head4     { ^^\=head4 \h+ <singleline_text> <blank_line> }
 
   # basic formatting codes
   # TODO enable formatting within formatting
@@ -109,16 +123,21 @@ grammar Pod::Perl5::Grammar
   token italic        { I\< <multiline_text> \>  }
   token bold          { B\< <multiline_text> \>  }
   token code          { C\< <multiline_text> \>  }
+  token escape        { E\< <singleline_text> \>  }
+  token filename      { F\< <singleline_text> \>  }
+  token singleline    { S\< <singleline_text> \>  }
+  token index         { X\< <singleline_text> \>  }
+  token zeroeffect    { Z\< <singleline_text> \>  }
 
   # links are more complicated
   token link          { L\<
                          [
                             [ <url>  ]
-                          | [ <link_text> \| <url> ]
+                          | [ <singleline_text> \| <url> ]
                           | [ <name> \| <section> ]
                           | [ <name> [ \|? \/ <section> ]? ]
                           | [ \/ <section> ]
-                          | [ <link_text> \| <name> \/ <section> ]
+                          | [ <singleline_text> \| <name> \/ <section> ]
                          ]
                         \>
                       }

@@ -1,3 +1,5 @@
+=encoding utf8
+
 =head1 NAME
 
 Pod::Perl5
@@ -10,11 +12,9 @@ Pod::Perl5
 
 =over 2
 
-=item * be able to parse inline POD (mixed with Perl 5 code)
+=item * be able to parse inline POD (Pod mixed with code)
 
 =item * enable formatting codes within formatting codes
-
-=item * add checks that begin/end format names match
 
 =back
 
