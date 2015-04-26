@@ -18,5 +18,5 @@ is $match<head1>[3]<paragraph><text>.Str, "SYNOPSIS", 'Parser extracted value fr
 is $match<paragraph>[1]<text>.Str, "0.01", 'Parser extracted value from paragraph';
 is $match<paragraph>[2]<text><format_codes>[0]<code><multiline_text>.Str, "Pod::Perl5::Grammar",
   'Parser extracted value from paragraph';
-is $match<verbatim_paragraph>[0].Str, "  use Pod::Perl5;\n\n",
-  'Parser extracted value from verbatim paragraph';
+is $match<verbatim_paragraph>[0]<verbatim_text>.Str, "  use Pod::Perl5;",
+  'Parser extracted text from verbatim paragraph';

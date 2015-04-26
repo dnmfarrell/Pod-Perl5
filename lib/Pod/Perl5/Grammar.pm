@@ -11,11 +11,9 @@ grammar Pod::Perl5::Grammar
     $
   }
 
-  # verbatim paragraph is a paragraph that begins with horizontal whitespace
-  # and ends in a blank line
   token verbatim_paragraph
   {
-    ^^\h+? \S.+? <blank_line>
+    <verbatim_text> <blank_line>
   }
 
   token paragraph
@@ -24,13 +22,19 @@ grammar Pod::Perl5::Grammar
   }
 
   # paragraph text is a stream of text and/or format codes
-  # beginning with a non-whitespace char (and not =) or a format code
+  # beginning with a non-whitespace char (not =) or a format code
   # and not containing a blank line
   token text
   {
     <?!before \=>
     [<format_codes>|<?!before <format_codes>> \S]
     [<format_codes>|<?!before [<format_codes>|<blank_line>]> . ]*
+  }
+
+  # verbatim text is text that begins on a newline with horizontal whitespace
+  token verbatim_text
+  {
+    ^^\h+? \S [ <?!before <blank_line>> . ]*
   }
 
   # blank line is a stream of whitespace surrounded by newlines
@@ -40,26 +44,26 @@ grammar Pod::Perl5::Grammar
   }
 
   # tokens for matching streams of text in formatting codes
-  # none can contain ">" as it's the closing char of a formatting
-  # sequence
+  # none of them can contain ">" as it's the closing char of 
+  # a formatting sequence
   token name
   {
     <-[\s\>\/\|]>+
   }
 
-  token link_text
+  token singleline_text
   {
     <-[\v\>\/\|]>+
   }
 
-  # formatting codes can break over lines, but not blank lines. Should add that
-  # restriction here
+  # multinline text can break over lines, but not blank lines.
+  # Should add that restriction here
   token multiline_text
   {
     <-[ \> ]>+
   }
 
-  # section has the same definition as text, but we have a different token
+  # section has the same definition as singleline text, but we have a different token
   # in order to be able to distinguish between text and section when they're
   # both present in a link tag eg. "L<This is text|Module::Name/ThisIsTheSection>"
   token section
@@ -109,16 +113,21 @@ grammar Pod::Perl5::Grammar
   token italic        { I\< <multiline_text> \>  }
   token bold          { B\< <multiline_text> \>  }
   token code          { C\< <multiline_text> \>  }
+  token escape        { E\< <singleline_text> \>  }
+  token filename      { F\< <singleline_text> \>  }
+  token singleline    { S\< <singleline_text> \>  }
+  token index         { X\< <singleline_text> \>  }
+  token zeroeffect    { Z\< <singleline_text> \>  }
 
   # links are more complicated
   token link          { L\<
                          [
                             [ <url>  ]
-                          | [ <link_text> \| <url> ]
+                          | [ <singleline_text> \| <url> ]
                           | [ <name> \| <section> ]
                           | [ <name> [ \|? \/ <section> ]? ]
                           | [ \/ <section> ]
-                          | [ <link_text> \| <name> \/ <section> ]
+                          | [ <singleline_text> \| <name> \/ <section> ]
                          ]
                         \>
                       }
