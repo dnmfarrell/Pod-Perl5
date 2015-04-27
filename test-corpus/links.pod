@@ -1,3 +1,5 @@
+=pod
+
 L<Some::Name>
 
 L<Some::Name/section>
@@ -20,4 +22,6 @@ L<Link text|ftp://example.com>
 
 A paragraph with a links L<Some::Module> inside
 it url: L<http example|http://example.com>
+
+=cut
 

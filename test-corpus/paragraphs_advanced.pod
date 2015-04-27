@@ -1,3 +1,5 @@
+=pod
+
 In Perl5 pod, ordinary paragraphs are streams of text separated by an empty line.
 
   use strict;

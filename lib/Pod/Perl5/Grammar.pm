@@ -1,14 +1,27 @@
-#use Grammar::Tracer;
-
 grammar Pod::Perl5::Grammar
 {
   token TOP
   {
-    ^ [
-        <paragraph>|<verbatim_paragraph>|<over_back>|<for>|<begin_end>|
-        <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>
-      ]*
-    $
+    ^ [ <pod_section> | <?!before <pod_section> > .]* $
+  }
+
+  token pod_section
+  {
+    # start with a command block
+    [
+      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<for>|<over_back>|<begin_end>
+    ]
+
+    # any number of pod sections thereafter
+    [
+      <paragraph>|<verbatim_paragraph>|<over_back>|<for>|<begin_end>|
+      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>
+    ]*
+
+    # must end on =cut or the end of the string
+    [
+      <cut>|$
+    ]
   }
 
   token verbatim_paragraph
@@ -117,7 +130,6 @@ grammar Pod::Perl5::Grammar
   token head4     { ^^\=head4 \h+ <singleline_text> <blank_line> }
 
   # basic formatting codes
-  # TODO enable formatting within formatting
   token format_codes  { [<italic>|<bold>|<code>|<link>|<escape>|<filename>|<singleline>|<index>|<zeroeffect>] }
   token italic        { I\< <multiline_text>  \>  }
   token bold          { B\< <multiline_text>  \>  }
