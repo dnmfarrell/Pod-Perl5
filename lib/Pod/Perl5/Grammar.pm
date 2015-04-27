@@ -57,10 +57,9 @@ grammar Pod::Perl5::Grammar
   }
 
   # multinline text can break over lines, but not blank lines.
-  # TODO add that restriction here
   token multiline_text
   {
-    <-[ \> ]>+
+    [ <?!before [ <blank_line> | \> ]> . ]+
   }
 
   # section has the same definition as singleline text, but we have a different token
