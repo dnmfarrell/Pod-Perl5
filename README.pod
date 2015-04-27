@@ -6,15 +6,13 @@ Pod::Perl5
 
 =head1 VERSION
 
-0.02
+0.03
 
 =head1 TODO
 
 =over 2
 
 =item * be able to parse inline POD (Pod mixed with code)
-
-=item * enable formatting codes within formatting codes
 
 =back
 
@@ -30,7 +28,6 @@ The parser can parse *.pod files and supports all pod syntax. See L</TODO> for r
 
   my $match = Pod::Perl5.parse_file('/some.pod');
   my $match = Pod::Perl5::parse_string($pod);
-
 
 =head2 INSTALL
 

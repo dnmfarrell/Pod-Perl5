@@ -59,7 +59,7 @@ grammar Pod::Perl5::Grammar
   # multinline text can break over lines, but not blank lines.
   token multiline_text
   {
-    [ <?!before [ <blank_line> | \> ]> . ]+
+    [ <format_codes> | <?!before [ <blank_line> | \> ]> . ]+
   }
 
   # section has the same definition as singleline text, but we have a different token
@@ -118,10 +118,10 @@ grammar Pod::Perl5::Grammar
 
   # basic formatting codes
   # TODO enable formatting within formatting
-  token format_codes  { [<italic>|<bold>|<code>|<link>] }
-  token italic        { I\< <multiline_text> \>  }
-  token bold          { B\< <multiline_text> \>  }
-  token code          { C\< <multiline_text> \>  }
+  token format_codes  { [<italic>|<bold>|<code>|<link>|<escape>|<filename>|<singleline>|<index>|<zeroeffect>] }
+  token italic        { I\< <multiline_text>  \>  }
+  token bold          { B\< <multiline_text>  \>  }
+  token code          { C\< <multiline_text>  \>  }
   token escape        { E\< <singleline_text> \>  }
   token filename      { F\< <singleline_text> \>  }
   token singleline    { S\< <singleline_text> \>  }

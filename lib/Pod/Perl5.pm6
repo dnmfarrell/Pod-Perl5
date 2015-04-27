@@ -1,6 +1,6 @@
 use Pod::Perl5::Grammar;
 
-module Pod::Perl5:ver<0.02>
+module Pod::Perl5:ver<0.03>
 {
   our sub parse_file (Str:D $filepath)
   {
