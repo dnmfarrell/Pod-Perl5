@@ -15,7 +15,7 @@ grammar Pod::Perl5::Grammar
     # any number of pod sections thereafter
     [
       <paragraph>|<verbatim_paragraph>|<over_back>|<for>|<begin_end>|
-      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>
+      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>|<blank_line>
     ]*
 
     # must end on =cut or the end of the string
@@ -50,14 +50,13 @@ grammar Pod::Perl5::Grammar
     ^^\h+? \S [ <?!before <blank_line>> . ]*
   }
 
-  # blank line is a stream of whitespace surrounded by newlines
   token blank_line
   {
-    \n\h*?[\n|$]
+    ^^ \h*? \n
   }
 
   # tokens for matching streams of text in formatting codes
-  # none of them can contain ">" as it's the closing char of 
+  # none of them can contain ">" as it's the closing char of
   # a formatting sequence
   token name
   {
@@ -84,27 +83,27 @@ grammar Pod::Perl5::Grammar
   }
 
   # command paragraphs
-  token pod       { ^^\=pod <blank_line> }
-  token cut       { ^^\=cut <blank_line> }
-  token encoding  { ^^\=encoding \h <name> \h* <blank_line> }
+  token pod       { ^^\=pod \h* \n }
+  token cut       { ^^\=cut \h* \n }
+  token encoding  { ^^\=encoding \h+ <name> \h* \n }
 
   # list processing
   token over_back { <over>
                     [
-                      <_item> | <paragraph> | <verbatim_paragraph> | <for> |
-                      <begin_end> | <pod> | <encoding> | <over_back>
+                      <_item> | <paragraph> | <verbatim_paragraph> | <blank_line> |
+                      <for> | <begin_end> | <pod> | <encoding> | <over_back>
                     ]*
                     <back>
                   }
 
-  token over      { ^^\=over [\h<[0..9]>]? <blank_line> }
+  token over      { ^^\=over [\h+ <[0..9]>+ ]? \n }
   token _item     { ^^\=item \h+ <name>
                     [
                         [ \h+ <paragraph>  ]
-                      | [ \h* <blank_line> <paragraph>? ]
+                      | [ \h* \n <blank_line> <paragraph>? ]
                     ]
                   }
-  token back      { ^^\=back <blank_line> }
+  token back      { ^^\=back \h* \n }
 
   # format processing
   # begin/end blocks cannot be nested
@@ -113,21 +112,21 @@ grammar Pod::Perl5::Grammar
   my $begin_end_name;
 
   token begin_end { <begin> <begin_end_content> <end> }
-  token begin     { ^^\=begin \h+ <name> <blank_line> { $begin_end_name = $/<name>.Str } }
-  token end       { ^^\=end \h+ $begin_end_name <blank_line> }
+  token begin     { ^^\=begin \h+ <name> \h* \n { $begin_end_name = $/<name>.Str } }
+  token end       { ^^\=end \h+ $begin_end_name \h* \n }
 
   token begin_end_content
   {
-    [<?!before <end>>. ]*
+    [ <?!before <end>> . ]*
   }
 
   token for       { ^^\=for \h <name> \h+ <paragraph> }
 
   # headers
-  token head1     { ^^\=head1 \h+ <singleline_text> <blank_line> }
-  token head2     { ^^\=head2 \h+ <singleline_text> <blank_line> }
-  token head3     { ^^\=head3 \h+ <singleline_text> <blank_line> }
-  token head4     { ^^\=head4 \h+ <singleline_text> <blank_line> }
+  token head1     { ^^\=head1 \h+ <singleline_text> \n }
+  token head2     { ^^\=head2 \h+ <singleline_text> \n }
+  token head3     { ^^\=head3 \h+ <singleline_text> \n }
+  token head4     { ^^\=head4 \h+ <singleline_text> \n }
 
   # basic formatting codes
   token format_codes  { [<italic>|<bold>|<code>|<link>|<escape>|<filename>|<singleline>|<index>|<zeroeffect>] }

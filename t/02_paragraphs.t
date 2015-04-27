@@ -10,11 +10,11 @@ ok my $match = Pod::Perl5::parse_file('test-corpus/paragraphs_simple.pod'), 'par
 is $match<pod_section>[0]<paragraph>.elems, 3, 'Parser extracted three paragraphs';
 
 is $match<pod_section>[0]<paragraph>[0]<text>.Str,
-  'paragraph one', 'Paragraph text extracted successfully';
+  "paragraph one\n", 'Paragraph text extracted successfully';
 
 is $match<pod_section>[0]<paragraph>[1]<text>.Str,
-  "paragraph two\nparagraph two", 'Paragraph text extracted successfully';
+  "paragraph two\nparagraph two\n", 'Paragraph text extracted successfully';
 
 is $match<pod_section>[0]<paragraph>[2]<text>.Str,
-  "paragraph three\nparagraph three\nparagraph three", 'Paragraph text extracted successfully';
+  "paragraph three\nparagraph three\nparagraph three\n", 'Paragraph text extracted successfully';
 

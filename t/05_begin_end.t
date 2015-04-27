@@ -11,12 +11,12 @@ is $match<pod_section>[0]<begin_end>.elems, 2, 'Parser extracted two begin/end p
 # block 1
 is $match<pod_section>[0]<begin_end>[0]<begin><name>.Str, 'HTML', 'The name from first begin pair is HTML';
 is $match<pod_section>[0]<begin_end>[0]<begin_end_content>.Str,
-  qq/<a href="">Some link<\/a>\n\n/,
+  qq/\n<a href="">Some link<\/a>\n\n/,
   'Extract the text from begin/end block';
 
 # block 2
 is $match<pod_section>[0]<begin_end>[1]<begin><name>.Str, 'some_text', 'The name from first begin pair is some_text';
 is $match<pod_section>[0]<begin_end>[1]<begin_end_content>.Str,
-  "This is just some text\n\n",
+  "\nThis is just some text\n\n",
   'Extract the text from begin/end block';
 

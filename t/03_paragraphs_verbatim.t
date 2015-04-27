@@ -15,5 +15,6 @@ is $match<pod_section>[0]<verbatim_paragraph>.elems, 1,
   'Parser extracted one verbatim paragraph';
 
 is $match<pod_section>[0]<verbatim_paragraph>[0]<verbatim_text>.Str,
-  qq/  use strict;\n  print "Hello, World!\\n";/, # escape the literal newline
+  qq/  use strict;\n  print "Hello, World!\\n";\n/, # escape the literal newline
   'Parser extracted the verbatim text';
+

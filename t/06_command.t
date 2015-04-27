@@ -15,3 +15,4 @@ is $match<pod_section>[0]<cut>.elems, 1, 'Parser extracted one cut';
 is $match<pod_section>[0]<encoding>.elems, 1, 'Parser extracted one encoding';
 is $match<pod_section>[0]<encoding>[0]<name>.Str, 'utf8', 'Parser extracted encoding name is utf8';
   'Parser extracted the paragraph';
+
