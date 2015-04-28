@@ -1,6 +1,12 @@
+=pod
+
+I<This is a B<realistic> document for testing parsing on>
+
+=encoding utf8
+
 =head1 NAME
 
-Pod::Perl5
+Pod::Perl5 - a Perl 6 parser for Perl 5 pod
 
 =head1 VERSION
 
@@ -8,7 +14,7 @@ Pod::Perl5
 
 =head1 DESCRIPTION
 
-This is a Perl6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
+This is a Perl6 module for parsing B<Perl 5> pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
 
 =head1 SYNOPSIS
 
@@ -30,5 +36,17 @@ FreeBSD, see LICENSE file
 
 =head1 SEE ALSO
 
-L<perlpod documentation|http://perldoc.perl.org/perlpod.html>
+=over 4
+
+=item * L<perlpod documentation|http://perldoc.perl.org/perlpod.html>
+
+=back
+
+=begin html
+
+<p>This code lives on <a href="https://github.com/dnmfarrell/Pod-Perl5">GitHub</a></p>
+
+=end html
+
+=for markdown This code lives on [GitHub](https://github.com/dnmfarrell/Pod-Perl5)
 
