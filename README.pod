@@ -6,7 +6,7 @@ Pod::Perl5
 
 =head1 VERSION
 
-0.04
+0.05
 
 =head1 DESCRIPTION
 
