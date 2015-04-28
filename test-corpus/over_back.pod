@@ -1,10 +1,15 @@
+
+
 =over
 
 =item 1 bullet point one
+ 
 
+  
 =item * bullet point two
-
+  
 =item some_code() bullet point three
+
 
 =item NoPara
 
@@ -28,10 +33,12 @@ paragraph one
 	verbatim paragraph one
 	verbatim paragraph one
 
+
 paragraph two
 paragraph two
 paragraph two
 paragraph two
+
 
 	verbatim paragraph two
 	verbatim paragraph two
@@ -49,21 +56,26 @@ paragraph two
 
 =back
 
+  
 =over 4
 
 =item outer list bullet one
 
+
 =item outer list bullet two
+
 
 =over 8
 
 =item inner list bullet one
+
 
 =item inner list bullet two
 
 =back
 
 =item outer list bullet three
+
 
 =back
 

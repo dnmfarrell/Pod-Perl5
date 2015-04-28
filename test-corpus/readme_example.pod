@@ -42,11 +42,11 @@ FreeBSD, see LICENSE file
 
 =back
 
-=begin html
+=begin HTML
 
 <p>This code lives on <a href="https://github.com/dnmfarrell/Pod-Perl5">GitHub</a></p>
 
-=end html
+=end HTML
 
 =for markdown This code lives on [GitHub](https://github.com/dnmfarrell/Pod-Perl5)
 

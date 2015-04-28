@@ -1,36 +1,25 @@
+=encoding utf8
+
 =head1 NAME
 
 Pod::Perl5
 
 =head1 VERSION
 
-0.02
-
-=head1 TODO
-
-=over 2
-
-=item * be able to parse inline POD (Pod mixed with code)
-
-=item * enable formatting codes within formatting codes
-
-=item * add checks that begin/end format names match
-
-=back
+0.04
 
 =head1 DESCRIPTION
 
-This is a Perl6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
+This is a Perl 6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
 
-The parser can parse *.pod files and supports all pod syntax. See L</TODO> for remaining issues.
+The parser can parse inline pod and standalone *.pod files and supports all pod syntax.
 
 =head1 SYNOPSIS
 
   use Pod::Perl5;
 
-  my $match = Pod::Perl5.parse_file('/some.pod');
+  my $match = Pod::Perl5::parse_file('/some.pod');
   my $match = Pod::Perl5::parse_string($pod);
-
 
 =head2 INSTALL
 

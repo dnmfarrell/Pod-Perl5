@@ -1,9 +1,9 @@
 use Test;
 use lib 'lib';
 
-plan 2;
+plan 3;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok Pod::Perl5::parse_string("=pod\n\nParagraph 1\n\n=cut\n"), 'parse string';
-
+ok my $string_match = Pod::Perl5::parse_string("=pod\n\nParagraph 1\n\n=cut\n"), 'parse string';
+ok my $file_match   = Pod::Perl5::parse_file('test-corpus/readme_example.pod'), 'parse document';

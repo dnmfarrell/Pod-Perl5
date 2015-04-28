@@ -1,3 +1,5 @@
+=pod
+
 I<this text is an example of inline italicised/emphasised>
 
 I<this text is italicised/emphasised 

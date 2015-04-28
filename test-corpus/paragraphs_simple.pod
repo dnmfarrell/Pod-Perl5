@@ -1,3 +1,5 @@
+=pod
+
 paragraph one
 
 paragraph two
