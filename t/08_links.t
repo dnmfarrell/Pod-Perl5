@@ -24,7 +24,7 @@ is $match<pod_section>[0]<paragraph>[3]<text><format_codes>[0]<link><name>.Str,
 is $match<pod_section>[0]<paragraph>[4]<text><format_codes>[0]<link><name>.Str,
 'Some::Name', 'Parser extracted the correct name';
 
-is $match<pod_section>[0]<paragraph>[5]<text><format_codes>[0]<link><singleline_text>.Str,
+is $match<pod_section>[0]<paragraph>[5]<text><format_codes>[0]<link><singleline_format_text>.Str,
 'Some text', 'Parser extracted the correct text';
 
 is $match<pod_section>[0]<paragraph>[6]<text><format_codes>[0]<link><url>.Str,
