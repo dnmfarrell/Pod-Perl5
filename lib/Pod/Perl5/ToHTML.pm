@@ -23,7 +23,7 @@ class Pod::Perl5::ToHTML
   # the italicised text is stored in the paragraph buffer
   # and when the paragraph() executes, it replaces its
   # contents with the buffer
-  has %!buffer = paragraph => (), _item => ();
+  has %!buffer = paragraph => Array.new(), _item => Array.new();
 
   method get_buffer (Str:D $buffer_name) is rw
   {
@@ -33,8 +33,7 @@ class Pod::Perl5::ToHTML
 
   method add_to_buffer (Str:D $buffer_name, Pair:D $pair)
   {
-    my @buffer = self.get_buffer($buffer_name);
-    @buffer.push: $pair;
+    self.get_buffer($buffer_name).push($pair);
   }
 
   method clear_buffer (Str:D $buffer_name)
