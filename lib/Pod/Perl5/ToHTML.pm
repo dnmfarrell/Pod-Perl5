@@ -15,7 +15,7 @@ class Pod::Perl5::ToHTML
   method add_to_html (Str:D $section_name, Str:D $string)
   {
     die "Section $section_name doesn't exist!" unless %!html{$section_name}:exists;
-    %!html<$section_name> ~= $string;
+    %!html{$section_name} ~= $string;
   }
 
   # buffer is used as a temporary store when formatting needs to
@@ -28,7 +28,7 @@ class Pod::Perl5::ToHTML
   method get_buffer (Str:D $buffer_name) is rw
   {
     die ("buffer {$buffer_name} does not exist!") unless %!buffer{$buffer_name}:exists;
-    return %!buffer<buffer_name>;
+    return-rw %!buffer{$buffer_name}; # return-rw required, a naked "return" forces ro
   }
 
   method add_to_buffer (Str:D $buffer_name, Pair:D $pair)
@@ -48,11 +48,11 @@ class Pod::Perl5::ToHTML
   {
     say $.output_filehandle, qq:to/END/;
       <html>
-      { if my $head = %!html<head> { "<head>{$head}</head>\n" } }
+      { if my $head = %!html<head> { "<head>\n{$head}</head>\n" } }
       { if my $body = %!html<body>
         {
           # remove redundant pre tags
-          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>\n>"
+          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>\n"
         }
       }
       </html>
@@ -83,8 +83,9 @@ class Pod::Perl5::ToHTML
   {
     my $para_text = $/<text>.Str.chomp;
 
-    for %!buffer<paragrph>.reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
+    for %!buffer<paragraph>.reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
     {
+      say "Processing key {$pair.key}";
       $para_text = $para_text.subst($pair.key, {$pair.value});
     }
     self.add_to_html('body', "<p>{$para_text}</p>\n");
@@ -120,7 +121,7 @@ class Pod::Perl5::ToHTML
     {
       $encoding = %.encoding_map{$encoding};
     }
-    self.add_to_html('body', qq{<meta charset="$encoding">\n});
+    self.add_to_html('head', qq{<meta charset="$encoding">\n});
   }
 
   # formatting codes are added to a buffer which is used to replace
