@@ -38,7 +38,17 @@ FreeBSD, see LICENSE file
 
 =over 4
 
-=item * L<perlpod documentation|http://perldoc.perl.org/perlpod.html>
+=item * L<perlpod documentation|http://perldoc.perl.org/perlpod.html> is the reference spec for this grammar
+
+=item * L<perlvar/DESCRIPTION > should convert into a perldoc link to perlvar with a section
+
+=item * L<perlpod> should convert into a link to perlpod
+
+=item * L<This is a link for the Time::Piece module|Time::Piece/USAGE> should convert into a perldoc link to Time::Piece
+
+=item * L<Time::Piece> should convert into a perldoc link to Time::Piece
+
+=item * L<https://github.com> should just be a pure url (text and href equal)
 
 =back
 

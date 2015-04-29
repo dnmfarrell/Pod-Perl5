@@ -1,73 +1,114 @@
 class Pod::Perl5::ToHTML
 {
-  # default to stdout
+
+  # we default to stdout
   has $.output_filehandle = $*OUT;
 
   # this maps pod encoding values to their HTML equivalent
   # if no mapping is found, the pod encoding value will be
   # used
-  has %.encoding_map is rw = utf8 => 'UTF-8';
+  has %.encoding_map = utf8 => 'UTF-8';
 
-  my ($head, $body);
+  # %html is where the converted markup is added
+  has %!html = head => '', body => '';
 
-  method add_to_head (Str:D $string)
+  method add_to_html (Str:D $section_name, Str:D $string)
   {
-    $head = "<head>\n" unless $head;
-    $head ~= "$string";
+    die "Section $section_name doesn't exist!" unless %!html{$section_name}:exists;
+    %!html<$section_name> ~= $string;
   }
 
-  method add_to_body (Str:D $string)
+  # buffer is used as a temporary store when formatting needs to
+  # be nested, e.g.: <p><i>some text</i></p>
+  # the italicised text is stored in the paragraph buffer
+  # and when the paragraph() executes, it replaces its
+  # contents with the buffer
+  has %!buffer = paragraph => (), _item => ();
+
+  method get_buffer (Str:D $buffer_name) is rw
   {
-    $body = "<body>" unless $body;
-    $body ~= "$string";
+    die ("buffer {$buffer_name} does not exist!") unless %!buffer{$buffer_name}:exists;
+    return %!buffer<buffer_name>;
   }
 
-  method TOP ($/)
+  method add_to_buffer (Str:D $buffer_name, Pair:D $pair)
+  {
+    my @buffer = self.get_buffer($buffer_name);
+    @buffer.push: $pair;
+  }
+
+  method clear_buffer (Str:D $buffer_name)
+  {
+    self.get_buffer($buffer_name) = ()
+  }
+
+  # once parsing is complete, this method is executed
+  # we format and print the $html
+  method TOP ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
     say $.output_filehandle, qq:to/END/;
       <html>
-      { if ($head) { $head ~ '</head>' } }
-      { if ($body) { $body ~ '</body>' } }
+      { if my $head = %!html<head> { "<head>{$head}</head>\n" } }
+      { if my $body = %!html<body>
+        {
+          # remove redundant pre tags
+          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>\n>"
+        }
+      }
       </html>
       END
   }
 
   method head1 ($/)
   {
-    self.add_to_body("<h1>{$/<singleline_text>.Str}</h1>\n");
+    self.add_to_html('body', "<h1>{$/<singleline_text>.Str}</h1>\n");
   }
 
   method head2 ($/)
   {
-    self.add_to_body("<h2>{$/<singleline_text>.Str}</h2>\n");
+    self.add_to_html('body', "<h2>{$/<singleline_text>.Str}</h2>\n");
   }
 
   method head3 ($/)
   {
-    self.add_to_body("<h3>{$/<singleline_text>.Str}</h3>\n");
+    self.add_to_html('body', "<h3>{$/<singleline_text>.Str}</h3>\n");
   }
 
   method head4 ($/)
   {
-    self.add_to_body("<h4>{$/<singleline_text>.Str}</h4>\n");
+    self.add_to_html('body', "<h4>{$/<singleline_text>.Str}</h4>\n");
   }
 
-  method paragraph ($/)
+  method paragraph ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
-    self.add_to_body("<p>{$/<text>.Str.chomp}</p>\n");
+    my $para_text = $/<text>.Str.chomp;
+
+    for %!buffer<paragrph>.reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
+    {
+      $para_text = $para_text.subst($pair.key, {$pair.value});
+    }
+    self.add_to_html('body', "<p>{$para_text}</p>\n");
+    self.clear_buffer('paragraph');
   }
 
   method verbatim_paragraph ($/)
   {
-    self.add_to_body("<pre>{$/.Str}</pre>\n");
+    self.add_to_html('body', "<pre>{$/.Str}</pre>\n");
   }
 
-  method begin_end ($/)
+  method begin_end ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
-    # 2015.04-51-g0c197cd error "cannot assign to a readonly variable"
-    #if $/<begin><name>.Str ~~ m:i/HTML/
+    if $/<begin><name>.Str ~~ m:i/HTML/
     {
-      self.add_to_body("{$/<begin_end_content>.Str}\n");
+      self.add_to_html('body', "{$/<begin_end_content>.Str}\n");
+    }
+  }
+
+  method for ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  {
+    if $/<name>.Str ~~ m:i/HTML/
+    {
+      self.add_to_html('body', "{$/<singleline_text>.Str}\n");
     }
   }
 
@@ -75,15 +116,123 @@ class Pod::Perl5::ToHTML
   {
     my $encoding = $/<name>.Str;
 
-    if %.encoding_map<$encoding>:exists
+    if %.encoding_map{$encoding}:exists
     {
-      $encoding = %.encoding_map<$encoding>;
+      $encoding = %.encoding_map{$encoding};
     }
-    self.add_to_head(qq{<meta charset="$encoding">\n});
+    self.add_to_html('body', qq{<meta charset="$encoding">\n});
+  }
+
+  # formatting codes are added to a buffer which is used to replace
+  # text in the parent paragraph
+  method italic ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "<i>{$/<multiline_text>.Str}</i>");
+  }
+
+  method bold ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "<b>{$/<multiline_text>.Str}</b>");
+  }
+
+  method code ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "<code>{$/<multiline_text>.Str}</code>");
+  }
+
+  method escape ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "&{$/<singleline_format_text>.Str};");
+  }
+
+  # spec says to display in italics
+  method filename ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "<i>{$/<singleline_format_text>.Str}</i>");
+  }
+
+  # singleline shouldn't break across lines, use <pre> to preserve the layout
+  method singleline ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "<pre>{$/<singleline_format_text>.Str}</pre>");
+  }
+
+  # ignore index and zeroeffect
+  method index ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "");
+  }
+  method zeroeffect ($/)
+  {
+    self.add_to_buffer('paragraph', $/.Str => "");
+  }
+
+  method link ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  {
+    my $original_string = $/.Str;
+    my ($url, $text) = ("","");
+
+    if $/<url>:exists and $/<singleline_format_text>:exists
+    {
+      $text = $/<singleline_format_text>.Str;
+      $url  = $/<url>.Str;
+    }
+    elsif $/<url>:exists
+    {
+      $text = $/<url>.Str;
+      $url  = $/<url>.Str;
+    }
+    elsif $/<singleline_format_text>:exists and $/<name>:exists and $/<section>:exists
+    {
+      $text = $/<singleline_format_text>.Str;
+      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html#{$/<section>.Str}";
+    }
+    elsif $/<name>:exists and $/<section>:exists
+    {
+      $text = "{$/<name>.Str}#{$<section>.Str}";
+      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html#{$/<section>.Str}";
+    }
+    elsif $/<name>:exists
+    {
+      $text = $/<name>.Str;
+      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html";
+    }
+    else #must just be a section on current doc
+    {
+      $text = $<section>.Str;
+      $url  = "#{$/<section>.Str}";
+    }
+
+    # replace "::" with slash for the perldoc URLs
+    if $url ~~ m/^https?\:\/\/perldoc\.perl\.org/
+    {
+      $url = $url.subst('::', {'/'}, :g);
+    }
+    self.add_to_buffer('paragraph', $original_string => qq|<a href="{$url}">{$text}</a>|);
+  }
+
+  # list handling
+  method over ($/)
+  {
+    self.add_to_html('body', "<ul>\n");
+  }
+
+  method _item ($/)
+  {
+    self.add_to_html('body', "<li></li>\n");
+  }
+
+  method back ($/)
+  {
+    self.add_to_html('body', "</ul>\n");
   }
 }
 
 =begin pod
+
+=head1 WARNING
+
+This class is in development and subject to change
 
 =head1 NAME
 
