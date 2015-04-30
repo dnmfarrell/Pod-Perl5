@@ -5,7 +5,7 @@ plan 5;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok my $match = Pod::Perl5::parse_file('test-corpus/paragraphs_advanced.pod'),
+ok my $match = Pod::Perl5::parse-file('test-corpus/paragraphs_advanced.pod'),
   'parse paragraphs with verbatim example';
 
 is $match<pod_section>[0]<paragraph>.elems, 2,

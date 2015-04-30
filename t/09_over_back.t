@@ -5,7 +5,7 @@ plan 20;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok my $match = Pod::Perl5::parse_file('test-corpus/over_back.pod'), 'parse over_back';
+ok my $match = Pod::Perl5::parse-file('test-corpus/over_back.pod'), 'parse over_back';
 is $match<pod_section>[0]<over_back>.elems, 3, 'Parser extracted two over/back pair';
 
 # tests for list 1

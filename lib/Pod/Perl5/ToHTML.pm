@@ -12,6 +12,11 @@ class Pod::Perl5::ToHTML
   # %html is where the converted markup is added
   has %!html = head => '', body => '';
 
+  # when we're in a list, we buffer paragraph content
+  # this FIFO stack records whether we're in a list and the list type
+  # a stack is useful for nested lists!
+  has @!list_stack = Array.new();
+
   method add_to_html (Str:D $section_name, Str:D $string)
   {
     die "Section $section_name doesn't exist!" unless %!html{$section_name}:exists;
@@ -38,20 +43,20 @@ class Pod::Perl5::ToHTML
 
   method clear_buffer (Str:D $buffer_name)
   {
-    self.get_buffer($buffer_name) = ()
+    self.get_buffer($buffer_name) = Array.new();
   }
 
   # once parsing is complete, this method is executed
   # we format and print the $html
   method TOP ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
-    say $.output_filehandle, qq:to/END/;
+    say qq:to/END/;
       <html>
-      { if my $head = %!html<head> { "<head>\n{$head}</head>\n" } }
+      { if my $head = %!html<head> { "<head>\n{$head}</head>" } }
       { if my $body = %!html<body>
         {
           # remove redundant pre tags
-          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>\n"
+          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>"
         }
       }
       </html>
@@ -80,14 +85,23 @@ class Pod::Perl5::ToHTML
 
   method paragraph ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
+    my $original_text = $/<text>.Str.chomp;
     my $para_text = $/<text>.Str.chomp;
 
-    for %!buffer<paragraph>.reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
+    for self.get_buffer('paragraph').reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
     {
-      say "Processing key {$pair.key}";
       $para_text = $para_text.subst($pair.key, {$pair.value});
     }
-    self.add_to_html('body', "<p>{$para_text}</p>\n");
+
+    # buffer the text if we're in a list
+    if @!list_stack.elems > 0
+    {
+      self.add_to_buffer('_item', $original_text => "<p>{$para_text}</p>");
+    }
+    else
+    {
+      self.add_to_html('body', "<p>{$para_text}</p>\n");
+    }
     self.clear_buffer('paragraph');
   }
 
@@ -98,17 +112,23 @@ class Pod::Perl5::ToHTML
 
   method begin_end ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
-    if $/<begin><name>.Str ~~ m:i/HTML/
+    # make a copy so the regex can clobber $/
+    my $begin_end = $/;
+ 
+    if $/<begin><name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$/<begin_end_content>.Str}\n");
+      self.add_to_html('body', "{$begin_end<begin_end_content>.Str}\n");
     }
   }
 
-  method for ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  method _for ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
-    if $/<name>.Str ~~ m:i/HTML/
+    # make a copy so the regex can clobber $/
+    my $for = $/;
+
+    if $/<name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$/<singleline_text>.Str}\n");
+      self.add_to_html('body', "{$for<singleline_text>.Str}\n");
     }
   }
 
@@ -211,20 +231,28 @@ class Pod::Perl5::ToHTML
     self.add_to_buffer('paragraph', $original_string => qq|<a href="{$url}">{$text}</a>|);
   }
 
-  # list handling
+  # ignoring ol
   method over ($/)
   {
-    self.add_to_html('body', "<ul>\n");
+    # assume it's an unordered list
+    my $list_type = 'ul';
+
+    # the stack is a FIFO store which remembers if we're in a list, and what type
+    @!list_stack.push($list_type);
+    self.add_to_html('body', "<{$list_type}>\n");
   }
 
   method _item ($/)
   {
-    self.add_to_html('body', "<li></li>\n");
+    my $item_text = self.get_buffer('_item').map({.value}).join('\n');
+    self.add_to_html('body', "<li>\n{$item_text}\n</li>\n");
+    self.clear_buffer('_item');
   }
 
   method back ($/)
   {
-    self.add_to_html('body', "</ul>\n");
+    my $list_type = @!list_stack.pop;
+    self.add_to_html('body', "</{$list_type}>\n");
   }
 }
 

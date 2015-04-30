@@ -5,7 +5,7 @@ plan 10;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok my $match = Pod::Perl5::parse_file('test-corpus/headers.pod'), 'parse headers';
+ok my $match = Pod::Perl5::parse-file('test-corpus/headers.pod'), 'parse headers';
 
 is $match<pod_section>[0]<head1>.elems, 1, 'Parser extracted one head1';
 is $match<pod_section>[0]<head1>[0]<singleline_text>.Str, "heading 1", 'Parser extracted header 1';

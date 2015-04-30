@@ -5,7 +5,7 @@ plan 14;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok my $match = Pod::Perl5::parse_file('test-corpus/links.pod'), 'parse links';
+ok my $match = Pod::Perl5::parse-file('test-corpus/links.pod'), 'parse links';
 
 is $match<pod_section>[0]<paragraph>.elems, 11, 'Parser extracted ten paragraphs';
 

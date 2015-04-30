@@ -9,12 +9,12 @@ grammar Pod::Perl5::Grammar
   {
     # start with a command block
     [
-      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<for>|<over_back>|<begin_end>
+      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<_for>|<over_back>|<begin_end>
     ]
 
     # any number of pod sections thereafter
     [
-      <paragraph>|<verbatim_paragraph>|<over_back>|<for>|<begin_end>|
+      <paragraph>|<verbatim_paragraph>|<over_back>|<_for>|<begin_end>|
       <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>|<blank_line>
     ]*
 
@@ -97,7 +97,7 @@ grammar Pod::Perl5::Grammar
   token over_back { <over>
                     [
                       <_item> | <paragraph> | <verbatim_paragraph> | <blank_line> |
-                      <for> | <begin_end> | <pod> | <encoding> | <over_back>
+                      <_for> | <begin_end> | <pod> | <encoding> | <over_back>
                     ]*
                     <back>
                   }
@@ -127,7 +127,7 @@ grammar Pod::Perl5::Grammar
   [ <?!before <_end>> . ]*
   }
 
-  token for       { ^^\=for \h <name> \h+ <singleline_text> \n }
+  token _for      { ^^\=for \h <name> \h+ <singleline_text> \n }
 
   # headers
   token head1     { ^^\=head1 \h+ <singleline_text> \n }

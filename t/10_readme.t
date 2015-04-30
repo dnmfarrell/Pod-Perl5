@@ -5,7 +5,7 @@ plan 15;
 
 use Pod::Perl5; pass "Import Pod::Perl5";
 
-ok my $match = Pod::Perl5::parse_file('test-corpus/readme_example.pod'),
+ok my $match = Pod::Perl5::parse-file('test-corpus/readme_example.pod'),
   'parse readme example';
 
 # basic counts
@@ -15,7 +15,7 @@ is $match<pod_section>[0]<paragraph>.elems, 6, 'Parser extracted six paragraphs'
 is $match<pod_section>[0]<verbatim_paragraph>.elems, 4, 'Parser extracted four verbatim paragraphs';
 is $match<pod_section>[0]<over_back>.elems, 1, 'Parser extracted one list';
 is $match<pod_section>[0]<begin_end>.elems, 1, 'Parser extracted one begin/end block';
-is $match<pod_section>[0]<for>.elems,       1, 'Parser extracted one for block';
+is $match<pod_section>[0]<_for>.elems,       1, 'Parser extracted one for block';
 is $match<pod_section>[0]<pod>.elems,       1, 'Parser extracted one pod block';
 is $match<pod_section>[0]<encoding>.elems,  1, 'Parser extracted one encoding block';
 

@@ -1,10 +1,20 @@
 use Pod::Perl5::Grammar;
+use Pod::Perl5::ToHTML;
 
-module Pod::Perl5:ver<0.05>
+module Pod::Perl5:ver<0.06>
 {
-  our sub parse_file (Str:D $filepath)
+  our sub parse-file (Str:D $filepath, $actions?)
   {
-    my $match = Pod::Perl5::Grammar.parsefile($filepath);
+    my $match;
+
+    if $actions
+    {
+      $match = Pod::Perl5::Grammar.parsefile($filepath, :$actions);
+    }
+    else
+    {
+      $match = Pod::Perl5::Grammar.parsefile($filepath);
+    }
 
     unless ($match)
     {
@@ -13,15 +23,34 @@ module Pod::Perl5:ver<0.05>
     return $match;
   }
 
-  our sub parse_string (Str:D $pod)
+  our sub parse-string (Str:D $pod, $actions?)
   {
-    my $match = Pod::Perl5::Grammar.parse($pod);
+    my $match;
+
+    if $actions
+    {
+      $match = Pod::Perl5::Grammar.parse($pod, :$actions);
+    }
+    else
+    {
+      $match = Pod::Perl5::Grammar.parse($pod);
+    }
 
     unless ($match)
     {
       die "Error parsing pod";
     }
     return $match;
+  }
+
+  our sub string_to-html (Str:D $pod)
+  {
+    parse-string($pod, Pod::Perl5::ToHTML.new);
+  }
+
+  our sub file-to-html (Str: $filepath)
+  {
+    parse-file($filepath, Pod::Perl5::ToHTML.new);
   }
 }
 
