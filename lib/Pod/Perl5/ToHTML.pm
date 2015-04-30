@@ -143,51 +143,54 @@ class Pod::Perl5::ToHTML
     self.add_to_html('head', qq{<meta charset="$encoding">\n});
   }
 
+
   # formatting codes are added to a buffer which is used to replace
   # text in the parent paragraph
-  method italic ($/)
+  proto method format_codes { * }
+
+  multi method format_codes:italic ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<i>{$/<multiline_text>.Str}</i>");
   }
 
-  method bold ($/)
+  multi method format_codes:bold ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<b>{$/<multiline_text>.Str}</b>");
   }
 
-  method code ($/)
+  multi method format_codes:code ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<code>{$/<multiline_text>.Str}</code>");
   }
 
-  method escape ($/)
+  multi method format_codes:escape ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "&{$/<singleline_format_text>.Str};");
   }
 
   # spec says to display in italics
-  method filename ($/)
+  multi method format_codes:filename ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<i>{$/<singleline_format_text>.Str}</i>");
   }
 
   # singleline shouldn't break across lines, use <pre> to preserve the layout
-  method singleline ($/)
+  multi method format_codes:singleline ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<pre>{$/<singleline_format_text>.Str}</pre>");
   }
 
   # ignore index and zeroeffect
-  method index ($/)
+  multi method format_codes:index ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "");
   }
-  method zeroeffect ($/)
+  multi method format_codes:zeroeffect ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "");
   }
 
-  method link ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  multi method format_codes:link ($/ is copy) # required as regex writes to $/, and $/ is read only by default
   {
     my $original_string = $/.Str;
     my ($url, $text) = ("","");
