@@ -18,8 +18,13 @@ The parser can parse inline pod and standalone *.pod files and supports all pod 
 
   use Pod::Perl5;
 
-  my $match = Pod::Perl5::parse_file('/some.pod');
-  my $match = Pod::Perl5::parse_string($pod);
+  my $match = Pod::Perl5::parse-file('/some.pod');
+  my $match = Pod::Perl5::parse-string($pod);
+
+  # print HTML to stdout
+  Pod::Perl5::file-to-html('//some.pod');
+  Pod::Perl5::string-to-html($pod);
+
 
 =head2 INSTALL
 

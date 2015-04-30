@@ -43,12 +43,12 @@ module Pod::Perl5:ver<0.06>
     return $match;
   }
 
-  our sub string_to-html (Str:D $pod)
+  our sub string-to-html (Str:D $pod)
   {
     parse-string($pod, Pod::Perl5::ToHTML.new);
   }
 
-  our sub file-to-html (Str: $filepath)
+  our sub file-to-html (Str:D $filepath)
   {
     parse-file($filepath, Pod::Perl5::ToHTML.new);
   }
