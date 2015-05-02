@@ -136,18 +136,18 @@ grammar Pod::Perl5::Grammar
   token head4     { ^^\=head4 \h+ <singleline_text> \n }
 
   # basic formatting codes
-  token format_codes  { [<italic>|<bold>|<code>|<link>|<escape>|<filename>|<singleline>|<index>|<zeroeffect>] }
-  token italic        { I\< <multiline_text>  \>  }
-  token bold          { B\< <multiline_text>  \>  }
-  token code          { C\< <multiline_text>  \>  }
-  token escape        { E\< <singleline_format_text> \>  }
-  token filename      { F\< <singleline_format_text> \>  }
-  token singleline    { S\< <singleline_format_text> \>  }
-  token index         { X\< <singleline_format_text> \>  }
-  token zeroeffect    { Z\< <singleline_format_text> \>  }
+  proto token format_codes  { * }
+  multi token format_codes:italic        { I\< <multiline_text>  \>  }
+  multi token format_codes:bold          { B\< <multiline_text>  \>  }
+  multi token format_codes:code          { C\< <multiline_text>  \>  }
+  multi token format_codes:escape        { E\< <singleline_format_text> \>  }
+  multi token format_codes:filename      { F\< <singleline_format_text> \>  }
+  multi token format_codes:singleline    { S\< <singleline_format_text> \>  }
+  multi token format_codes:index         { X\< <singleline_format_text> \>  }
+  multi token format_codes:zeroeffect    { Z\< <singleline_format_text> \>  }
 
   # links are more complicated
-  token link          { L\<
+  multi token format_codes:link          { L\<
                          [
                             [ <url>  ]
                           | [ <singleline_format_text> \| <url> ]
