@@ -48,7 +48,7 @@ class Pod::Perl5::ToHTML
 
   # once parsing is complete, this method is executed
   # we format and print the $html
-  method TOP ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  method TOP ($match)
   {
     say qq:to/END/;
       <html>
@@ -83,10 +83,10 @@ class Pod::Perl5::ToHTML
     self.add_to_html('body', "<h4>{$/<singleline_text>.Str}</h4>\n");
   }
 
-  method paragraph ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  method paragraph ($match)
   {
-    my $original_text = $/<text>.Str.chomp;
-    my $para_text = $/<text>.Str.chomp;
+    my $original_text = $match<text>.Str.chomp;
+    my $para_text = $original_text;
 
     for self.get_buffer('paragraph').reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
     {
@@ -96,7 +96,7 @@ class Pod::Perl5::ToHTML
     # buffer the text if we're in a list
     if @!list_stack.elems > 0
     {
-      self.add_to_buffer('_item', $original_text => "<p>{$para_text}</p>");
+      $match.make: "<p>{$para_text}</p>";
     }
     else
     {
@@ -110,10 +110,10 @@ class Pod::Perl5::ToHTML
     self.add_to_html('body', "<pre>{$/.Str}</pre>\n");
   }
 
-  method begin_end ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  method begin_end ($match)
   {
     # make a copy so the regex can clobber $/
-    my $begin_end = $/;
+    my $begin_end = $match;
  
     if $/<begin><name>.Str.match(/^ HTML $/, :i)
     {
@@ -121,10 +121,10 @@ class Pod::Perl5::ToHTML
     }
   }
 
-  method _for ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  method _for ($match)
   {
     # make a copy so the regex can clobber $/
-    my $for = $/;
+    my $for = $match;
 
     if $/<name>.Str.match(/^ HTML $/, :i)
     {
@@ -190,40 +190,40 @@ class Pod::Perl5::ToHTML
     self.add_to_buffer('paragraph', $/.Str => "");
   }
 
-  multi method format_codes:link ($/ is copy) # required as regex writes to $/, and $/ is read only by default
+  multi method format_codes:link ($match)
   {
-    my $original_string = $/.Str;
+    my $original_string = $match;
     my ($url, $text) = ("","");
 
-    if $/<url>:exists and $/<singleline_format_text>:exists
+    if $match<url>:exists and $match<singleline_format_text>:exists
     {
-      $text = $/<singleline_format_text>.Str;
-      $url  = $/<url>.Str;
+      $text = $match<singleline_format_text>.Str;
+      $url  = $match<url>.Str;
     }
-    elsif $/<url>:exists
+    elsif $match<url>:exists
     {
-      $text = $/<url>.Str;
-      $url  = $/<url>.Str;
+      $text = $match<url>.Str;
+      $url  = $match<url>.Str;
     }
-    elsif $/<singleline_format_text>:exists and $/<name>:exists and $/<section>:exists
+    elsif $match<singleline_format_text>:exists and $match<name>:exists and $match<section>:exists
     {
-      $text = $/<singleline_format_text>.Str;
-      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html#{$/<section>.Str}";
+      $text = $match<singleline_format_text>.Str;
+      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html#{$match<section>.Str}";
     }
-    elsif $/<name>:exists and $/<section>:exists
+    elsif $match<name>:exists and $match<section>:exists
     {
-      $text = "{$/<name>.Str}#{$<section>.Str}";
-      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html#{$/<section>.Str}";
+      $text = "{$match<name>.Str}#{$<section>.Str}";
+      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html#{$match<section>.Str}";
     }
-    elsif $/<name>:exists
+    elsif $match<name>:exists
     {
-      $text = $/<name>.Str;
-      $url  = "http://perldoc.perl.org/{$/<name>.Str}.html";
+      $text = $match<name>.Str;
+      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html";
     }
     else #must just be a section on current doc
     {
       $text = $<section>.Str;
-      $url  = "#{$/<section>.Str}";
+      $url  = "#{$match<section>.Str}";
     }
 
     # replace "::" with slash for the perldoc URLs
@@ -247,9 +247,7 @@ class Pod::Perl5::ToHTML
 
   method _item ($/)
   {
-    my $item_text = self.get_buffer('_item').map({.value}).join('\n');
-    self.add_to_html('body', "<li>\n{$item_text}\n</li>\n");
-    self.clear_buffer('_item');
+    self.add_to_html('body', "<li>\n{$/<paragraph>.made}\n</li>\n");
   }
 
   method back ($/)
