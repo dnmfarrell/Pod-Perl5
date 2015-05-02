@@ -11,20 +11,20 @@ is $match<pod_section>[0]<over_back>.elems, 3, 'Parser extracted two over/back p
 # tests for list 1
 is $match<pod_section>[0]<over_back>[0]<_item>[0]<name>.Str, '1',
   'Parser extracted name from bullet point one';
-is $match<pod_section>[0]<over_back>[0]<_item>[0]<paragraph><text>.Str, "bullet point one\n",
+is $match<pod_section>[0]<over_back>[0]<_item>[0]<paragraph><paragraph_node>.Str, "bullet point one\n",
   'Parser extracted paragraph from bullet point one';
 
 is $match<pod_section>[0]<over_back>[0]<_item>[1]<name>.Str, '*',
   'Parser extracted name from bullet point two';
 
-is $match<pod_section>[0]<over_back>[0]<_item>[1]<paragraph><text>.Str, "bullet point two\n",
+is $match<pod_section>[0]<over_back>[0]<_item>[1]<paragraph><paragraph_node>.Str, "bullet point two\n",
   'Parser extracted paragraph from bullet point two';
 
 is $match<pod_section>[0]<over_back>[0]<_item>[2]<name>.Str,
   'some_code()',
   'Parser extracted name from bullet point three';
 
-is $match<pod_section>[0]<over_back>[0]<_item>[2]<paragraph><text>.Str,
+is $match<pod_section>[0]<over_back>[0]<_item>[2]<paragraph><paragraph_node>.Str,
   "bullet point three\n",
   'Parser extracted paragraph from bullet point three';
 
@@ -39,7 +39,7 @@ is $match<pod_section>[0]<over_back>[0]<_item>[5]<name>,
   'ParaNextLine',
   'Parser extracted name from bullet point six';
 
-is $match<pod_section>[0]<over_back>[0]<_item>[5]<paragraph><text>.Str,
+is $match<pod_section>[0]<over_back>[0]<_item>[5]<paragraph><paragraph_node>.Str,
   "This is the para for the bullet point\n",
   'Parser extracted paragraph from bullet point seven';
 
@@ -47,7 +47,7 @@ is $match<pod_section>[0]<over_back>[0]<_item>[6]<name>,
   'ParaNextLineTrailWhitespace',
   'Parser extracted name from bullet point seven';
 
-is $match<pod_section>[0]<over_back>[0]<_item>[6]<paragraph><text>.Str,
+is $match<pod_section>[0]<over_back>[0]<_item>[6]<paragraph><paragraph_node>.Str,
   "This is the para for the bullet point after trailing whitespace\n",
   'Parser extracted paragraph from bullet point seven';
 

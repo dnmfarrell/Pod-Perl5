@@ -24,11 +24,11 @@ is $match<pod_section>[0]<head1>[3]<singleline_text>.Str,
   "SYNOPSIS",
   'Parser extracted name from header';
 
-is $match<pod_section>[0]<paragraph>[2]<text>.Str,
+is $match<pod_section>[0]<paragraph>[2]<paragraph_node>.Str,
   "0.01\n",
   'Parser extracted text from paragraph';
 
-is $match<pod_section>[0]<paragraph>[3]<text><format_codes>[1]<multiline_text>.Str,
+is $match<pod_section>[0]<paragraph>[3]<paragraph_node>[3]<format_codes><multiline_text>.Str,
   "Pod::Perl5::Grammar",
   'Parser extracted value from code formatting';
 

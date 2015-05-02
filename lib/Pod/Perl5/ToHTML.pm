@@ -28,7 +28,7 @@ class Pod::Perl5::ToHTML
   # the italicised text is stored in the paragraph buffer
   # and when the paragraph() executes, it replaces its
   # contents with the buffer
-  has %!buffer = paragraph => Array.new(), _item => Array.new();
+  has %!buffer = paragraph => Array.new();
 
   method get_buffer (Str:D $buffer_name) is rw
   {
@@ -85,7 +85,7 @@ class Pod::Perl5::ToHTML
 
   method paragraph ($match)
   {
-    my $original_text = $match<text>.Str.chomp;
+    my $original_text = $match<paragraph_node>.join('').Str.chomp;
     my $para_text = $original_text;
 
     for self.get_buffer('paragraph').reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
@@ -96,7 +96,7 @@ class Pod::Perl5::ToHTML
     # buffer the text if we're in a list
     if @!list_stack.elems > 0
     {
-      $match.make: "<p>{$para_text}</p>";
+      $match.make: "<p>{$para_text}</p>\n";
     }
     else
     {
@@ -143,10 +143,13 @@ class Pod::Perl5::ToHTML
     self.add_to_html('head', qq{<meta charset="$encoding">\n});
   }
 
+  #method paragraph_node ($/)
+  #{
+  #  say "paragraph_node called! received this:{$/.made}";
+    #$/.make: $/.made
+    #}
 
-  # formatting codes are added to a buffer which is used to replace
-  # text in the parent paragraph
-  proto method format_codes { * }
+  #proto method format_codes { * }
 
   multi method format_codes:italic ($/)
   {
@@ -247,7 +250,7 @@ class Pod::Perl5::ToHTML
 
   method _item ($/)
   {
-    self.add_to_html('body', "<li>\n{$/<paragraph>.made}\n</li>\n");
+    self.add_to_html('body', "<li>\n{$/<paragraph>.made}</li>\n");
   }
 
   method back ($/)

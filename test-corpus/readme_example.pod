@@ -52,7 +52,7 @@ FreeBSD, see LICENSE file
 
 =back
 
-=item * L<perlpod> should convert into a link to perlpod
+=item * L<perlpod> I<should> convert into a link to perlpod
 
 =back
 

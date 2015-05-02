@@ -31,17 +31,12 @@ grammar Pod::Perl5::Grammar
 
   token paragraph
   {
-    <text> <blank_line>
+    <?!before [\=|\s]> <paragraph_node>+  <blank_line>
   }
 
-  # paragraph text is a stream of text and/or format codes
-  # beginning with a non-whitespace char (not =) or a format code
-  # and not containing a blank line
-  token text
+  token paragraph_node
   {
-    <?!before \=>
-    [<format_codes>|<?!before <format_codes>> \S]
-    [<format_codes>|<?!before [<format_codes>|<blank_line>]> . ]*
+    [ <format_codes> | [<?!before [<format_codes>|<blank_line>]> .]+ ]
   }
 
   # verbatim text is text that begins on a newline with horizontal whitespace
