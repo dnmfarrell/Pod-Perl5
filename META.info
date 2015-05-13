@@ -9,5 +9,6 @@
       "Pod::Perl5::Grammar" : "lib/Pod/Perl5/Grammar.pm",
       "Pod::Perl5::ToHTML"  : "lib/Pod/Perl5/ToHTML.pm",
     },
+    "source-type" : "git",
     "source-url" : "git://github.com/dnmfarrell/Pod-Perl5.git"
 }
