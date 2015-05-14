@@ -2,25 +2,22 @@ grammar Pod::Perl5::Grammar
 {
   token TOP
   {
-    ^ [ <pod_section> | <?!before <pod_section> > .]* $
+    ^ [ <pod-section> | <?!before <pod-section> > .]* $
   }
 
-  token pod_section
+  token pod-section
   {
     # start with a command block
-    [
-      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<_for>|<over_back>|<begin_end>
-    ]
+    <command-block>
 
     # any number of pod sections thereafter
     [
-      <paragraph>|<verbatim_paragraph>|<over_back>|<_for>|<begin_end>|
-      <head1>|<head2>|<head3>|<head4>|<pod>|<encoding>|<cut>|<blank_line>
+     <command-block>|<paragraph>|<verbatim_paragraph>|<blank_line>
     ]*
 
     # must end on =cut or the end of the string
     [
-      <cut>|$
+      <command-block:cut>|$
     ]
   }
 
@@ -36,7 +33,7 @@ grammar Pod::Perl5::Grammar
 
   token paragraph_node
   {
-    [ <format_codes> | [<?!before [<format_codes>|<blank_line>]> .]+ ]
+    [ <format-code> | [<?!before [<format-code>|<blank_line>]> .]+ ]
   }
 
   # verbatim text is text that begins on a newline with horizontal whitespace
@@ -72,7 +69,7 @@ grammar Pod::Perl5::Grammar
   # multiline text can break over lines, but not blank lines.
   token multiline_text
   {
-    [ <format_codes> | <?!before [ <blank_line> | \> ]> . ]+
+    [ <format-code> | <?!before [ <blank_line> | \> ]> . ]+
   }
 
   # section has the same definition as singleline text, but we have a different token
@@ -83,19 +80,24 @@ grammar Pod::Perl5::Grammar
     <-[\v\>\/\|]>+
   }
 
-  # command paragraphs
-  token pod       { ^^\=pod \h* \n }
-  token cut       { ^^\=cut \h* \n }
-  token encoding  { ^^\=encoding \h+ <name> \h* \n }
+  # command blocks
+  proto token command-block { * }
+
+  multi token command-block:pod      { ^^\=pod \h* \n }
+  multi token command-block:cut      { ^^\=cut \h* \n }
+  multi token command-block:encoding { ^^\=encoding \h+ <name> \h* \n }
 
   # list processing
-  token over_back { <over>
-                    [
-                      <_item> | <paragraph> | <verbatim_paragraph> | <blank_line> |
-                      <_for> | <begin_end> | <pod> | <encoding> | <over_back>
-                    ]*
-                    <back>
-                  }
+  multi token command-block:over_back
+  {
+    <over>
+    [
+      <_item> | <paragraph> | <verbatim_paragraph> | <blank_line> |
+      <command-block:_for> | <command-block:begin_end> | <command-block:pod> | 
+      <command-block:encoding> | <command-block:over_back>
+    ]*
+    <back>
+  }
 
   token over      { ^^\=over [\h+ <[0..9]>+ ]? \n }
   token _item     { ^^\=item \h+ <name>
@@ -112,7 +114,7 @@ grammar Pod::Perl5::Grammar
   # to use for matching the end block
   my $begin_end_name;
 
-  token begin_end { <begin> <begin_end_content> <_end> }
+  multi token command-block:begin_end { <begin> <begin_end_content> <_end> }
   token begin     { ^^\=begin \h+ <name> \h* \n { $begin_end_name = $/<name>.Str } }
   # end() causes a namespace clash, changed to _end
   token _end       { ^^\=end \h+ $begin_end_name \h* \n }
@@ -122,27 +124,26 @@ grammar Pod::Perl5::Grammar
   [ <?!before <_end>> . ]*
   }
 
-  token _for      { ^^\=for \h <name> \h+ <singleline_text> \n }
+  multi token command-block:_for      { ^^\=for \h <name> \h+ <singleline_text> \n }
 
-  # headers
-  token head1     { ^^\=head1 \h+ <singleline_text> \n }
-  token head2     { ^^\=head2 \h+ <singleline_text> \n }
-  token head3     { ^^\=head3 \h+ <singleline_text> \n }
-  token head4     { ^^\=head4 \h+ <singleline_text> \n }
+  multi token command-block:head1     { ^^\=head1 \h+ <singleline_text> \n }
+  multi token command-block:head2     { ^^\=head2 \h+ <singleline_text> \n }
+  multi token command-block:head3     { ^^\=head3 \h+ <singleline_text> \n }
+  multi token command-block:head4     { ^^\=head4 \h+ <singleline_text> \n }
 
   # basic formatting codes
-  proto token format_codes  { * }
-  multi token format_codes:italic        { I\< <multiline_text>  \>  }
-  multi token format_codes:bold          { B\< <multiline_text>  \>  }
-  multi token format_codes:code          { C\< <multiline_text>  \>  }
-  multi token format_codes:escape        { E\< <singleline_format_text> \>  }
-  multi token format_codes:filename      { F\< <singleline_format_text> \>  }
-  multi token format_codes:singleline    { S\< <singleline_format_text> \>  }
-  multi token format_codes:index         { X\< <singleline_format_text> \>  }
-  multi token format_codes:zeroeffect    { Z\< <singleline_format_text> \>  }
+  proto token format-code  { * }
+  multi token format-code:italic        { I\< <multiline_text>  \>  }
+  multi token format-code:bold          { B\< <multiline_text>  \>  }
+  multi token format-code:code          { C\< <multiline_text>  \>  }
+  multi token format-code:escape        { E\< <singleline_format_text> \>  }
+  multi token format-code:filename      { F\< <singleline_format_text> \>  }
+  multi token format-code:singleline    { S\< <singleline_format_text> \>  }
+  multi token format-code:index         { X\< <singleline_format_text> \>  }
+  multi token format-code:zeroeffect    { Z\< <singleline_format_text> \>  }
 
   # links are more complicated
-  multi token format_codes:link          { L\<
+  multi token format-code:link          { L\<
                          [
                             [ <url>  ]
                           | [ <singleline_format_text> \| <url> ]

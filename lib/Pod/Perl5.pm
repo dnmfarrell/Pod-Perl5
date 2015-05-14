@@ -1,7 +1,7 @@
 use Pod::Perl5::Grammar;
 use Pod::Perl5::ToHTML;
 
-module Pod::Perl5:ver<0.07>
+module Pod::Perl5:ver<0.09>
 {
   our sub parse-file (Str:D $filepath, $actions?)
   {
@@ -45,12 +45,16 @@ module Pod::Perl5:ver<0.07>
 
   our sub string-to-html (Str:D $pod)
   {
-    parse-string($pod, Pod::Perl5::ToHTML.new);
+    my $actions = Pod::Perl5::ToHTML.new;
+    parse-string($pod, $actions);
+    $actions.output_string;
   }
 
   our sub file-to-html (Str:D $filepath)
   {
-    parse-file($filepath, Pod::Perl5::ToHTML.new);
+    my $actions = Pod::Perl5::ToHTML.new;
+    parse-file($filepath, $actions);
+    $actions.output_string;
   }
 }
 

@@ -1,8 +1,7 @@
 class Pod::Perl5::ToHTML
 {
-
-  # we default to stdout
-  has $.output_filehandle = $*OUT;
+  # this attribute contains the html
+  has $.output_string is rw;
 
   # this maps pod encoding values to their HTML equivalent
   # if no mapping is found, the pod encoding value will be
@@ -50,35 +49,35 @@ class Pod::Perl5::ToHTML
   # we format and print the $html
   method TOP ($match)
   {
-    say qq:to/END/;
-      <html>
-      { if my $head = %!html<head> { "<head>\n{$head}</head>" } }
-      { if my $body = %!html<body>
-        {
-          # remove redundant pre tags
-          "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>"
-        }
+    self.output_string = qq:to/END/;
+    <html>
+    { if my $head = %!html<head> { "<head>\n{$head}</head>" } }
+    { if my $body = %!html<body>
+      {
+        # remove redundant pre tags
+        "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>"
       }
-      </html>
-      END
+    }
+    </html>
+    END
   }
 
-  method head1 ($/)
+  multi method command-block:head1 ($/)
   {
     self.add_to_html('body', "<h1>{$/<singleline_text>.Str}</h1>\n");
   }
 
-  method head2 ($/)
+  multi method command-block:head2 ($/)
   {
     self.add_to_html('body', "<h2>{$/<singleline_text>.Str}</h2>\n");
   }
 
-  method head3 ($/)
+  multi method command-block:head3 ($/)
   {
     self.add_to_html('body', "<h3>{$/<singleline_text>.Str}</h3>\n");
   }
 
-  method head4 ($/)
+  multi method command-block:head4 ($/)
   {
     self.add_to_html('body', "<h4>{$/<singleline_text>.Str}</h4>\n");
   }
@@ -96,7 +95,7 @@ class Pod::Perl5::ToHTML
     # buffer the text if we're in a list
     if @!list_stack.elems > 0
     {
-      $match.make: "<p>{$para_text}</p>\n";
+      $match.make("<p>{$para_text}</p>\n");
     }
     else
     {
@@ -110,29 +109,23 @@ class Pod::Perl5::ToHTML
     self.add_to_html('body', "<pre>{$/.Str}</pre>\n");
   }
 
-  method begin_end ($match)
+  multi method command-block:begin_end ($match)
   {
-    # make a copy so the regex can clobber $/
-    my $begin_end = $match;
- 
-    if $/<begin><name>.Str.match(/^ HTML $/, :i)
+    if $match<begin><name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$begin_end<begin_end_content>.Str}\n");
+      self.add_to_html('body', "{$match<begin_end_content>.Str}\n");
     }
   }
 
-  method _for ($match)
+  multi method command-block:_for ($match)
   {
-    # make a copy so the regex can clobber $/
-    my $for = $match;
-
-    if $/<name>.Str.match(/^ HTML $/, :i)
+    if $match<name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$for<singleline_text>.Str}\n");
+      self.add_to_html('body', "{$match<singleline_text>.Str}\n");
     }
   }
 
-  method encoding ($/)
+  multi method command-block:encoding ($/)
   {
     my $encoding = $/<name>.Str;
 
@@ -143,57 +136,49 @@ class Pod::Perl5::ToHTML
     self.add_to_html('head', qq{<meta charset="$encoding">\n});
   }
 
-  #method paragraph_node ($/)
-  #{
-  #  say "paragraph_node called! received this:{$/.made}";
-    #$/.make: $/.made
-    #}
-
-  #proto method format_codes { * }
-
-  multi method format_codes:italic ($/)
+  multi method format-code:italic ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<i>{$/<multiline_text>.Str}</i>");
   }
 
-  multi method format_codes:bold ($/)
+  multi method format-code:bold ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<b>{$/<multiline_text>.Str}</b>");
   }
 
-  multi method format_codes:code ($/)
+  multi method format-code:code ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<code>{$/<multiline_text>.Str}</code>");
   }
 
-  multi method format_codes:escape ($/)
+  multi method format-code:escape ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "&{$/<singleline_format_text>.Str};");
   }
 
   # spec says to display in italics
-  multi method format_codes:filename ($/)
+  multi method format-code:filename ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<i>{$/<singleline_format_text>.Str}</i>");
   }
 
   # singleline shouldn't break across lines, use <pre> to preserve the layout
-  multi method format_codes:singleline ($/)
+  multi method format-code:singleline ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "<pre>{$/<singleline_format_text>.Str}</pre>");
   }
 
   # ignore index and zeroeffect
-  multi method format_codes:index ($/)
+  multi method format-code:index ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "");
   }
-  multi method format_codes:zeroeffect ($/)
+  multi method format-code:zeroeffect ($/)
   {
     self.add_to_buffer('paragraph', $/.Str => "");
   }
 
-  multi method format_codes:link ($match)
+  multi method format-code:link ($match)
   {
     my $original_string = $match;
     my ($url, $text) = ("","");
@@ -215,7 +200,7 @@ class Pod::Perl5::ToHTML
     }
     elsif $match<name>:exists and $match<section>:exists
     {
-      $text = "{$match<name>.Str}#{$<section>.Str}";
+      $text = "{$match<name>.Str}#{$match<section>.Str}";
       $url  = "http://perldoc.perl.org/{$match<name>.Str}.html#{$match<section>.Str}";
     }
     elsif $match<name>:exists
@@ -259,33 +244,3 @@ class Pod::Perl5::ToHTML
     self.add_to_html('body', "</{$list_type}>\n");
   }
 }
-
-=begin pod
-
-=head1 WARNING
-
-This class is in development and subject to change
-
-=head1 NAME
-
-Pod::Perl5::ToHTML - an action class for C<Pod::Perl5::Grammar>, for converting pod to HTML
-
-=head1 SYNOPSIS
-
-  use Pod::Perl5::Grammar;
-  use Pod::Perl5::ToHTML;
-
-  # parse some pod to html
-  my $to_html_action = Pod::Perl5::ToHTML.new;
-  Pod::Perl5::Grammar.parse($some_pod_string, :actions($to_html_action));
-
-=head1 METHODS
-
-=head2 new (output_filehandle => $filehandle)
-
-Creates a new C<Pod::Perl5::ToHTML> object. Optionally can take a filehandle argument, else
-defaults to stdout
-
-=cut
-
-=end pod
