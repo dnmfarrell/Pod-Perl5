@@ -5,8 +5,11 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   # new formatting codes!
   multi token format-code:hashtag   { '#'\< <name> \> }
   multi token format-code:twitter   { '@'\< <name> \> }
+  multi token format-code:data      {  D \< <multiline_text> \> }
   multi token format-code:github    {  G \< <singleline_format_text> \> }
   multi token format-code:metacpan  {  M \< <name> \> }
+  multi token format-code:note      {  N \< <multiline_text> \> }
+  multi token format-code:terminal  {  T \< <multiline_text> \> }
   multi token format-code:wikipedia {  W \< <singleline_format_text> \> }
 
   # new command blocks!
@@ -14,17 +17,17 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   # include will have the grammar parse the included file too
   # useful for boilerplate metadata like author data
   multi token command-block:include {
-    ^^\=include \h+ <singleline_text> \n
+    ^^\=include \h+ <file> \n
 
     # now parse the file
     {
-      make self.parsefile(
-        $/<singleline_text>, :actions($*ACTIONS)
-      );
-
+      $/<file>.make(self.parsefile($/<file>, :actions($*ACTIONS)));
       CATCH { die "Error parsing =include directive $_" }
     }
   }
+
+  # filepath to other pod
+  token file { \V+ }
 
   # author metadata
   multi token command-block:author-name { ^^\=author\-name \h+ <singleline_text> \n }
@@ -63,6 +66,10 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
     #{ DateTime.new($/<datetime>.Str); CATCH { die "Error parsing =publish-date $_" } }
   }
 
+  multi token command-block:chapter  { ^^\=chapter \h+ <singleline_text> \n }
   multi token command-block:title    { ^^\=title \h+ <singleline_text> \n }
   multi token command-block:subtitle { ^^\=subtitle \h+ <singleline_text> \n }
+  multi token command-block:section  { ^^\=section \h+ <singleline_text> \n }
+
+  # to do: =table, =img, IMG<>
 }
