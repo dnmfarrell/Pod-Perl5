@@ -2,7 +2,7 @@ grammar Pod::Perl5::Grammar
 {
   token TOP
   {
-    ^ [ <pod-section> | <?!before <pod-section> > .]* $
+    ^ [ <pod-section> | <?!before <pod-section> > .]* $?
   }
 
   token pod-section

@@ -1,8 +1,5 @@
 class Pod::Perl5::ToHTML
 {
-  # this attribute contains the html
-  has $.output_string is rw;
-
   # this maps pod encoding values to their HTML equivalent
   # if no mapping is found, the pod encoding value will be
   # used
@@ -10,11 +7,6 @@ class Pod::Perl5::ToHTML
 
   # %html is where the converted markup is added
   has %!html = head => '', body => '';
-
-  # when we're in a list, we buffer paragraph content
-  # this FIFO stack records whether we're in a list and the list type
-  # a stack is useful for nested lists!
-  has @!list_stack = Array.new();
 
   method add_to_html (Str:D $section_name, Str:D $string)
   {
@@ -47,39 +39,44 @@ class Pod::Perl5::ToHTML
 
   # once parsing is complete, this method is executed
   # we format and print the $html
-  method TOP ($match)
+  method TOP ($/)
   {
-    self.output_string = qq:to/END/;
-    <html>
-    { if my $head = %!html<head> { "<head>\n{$head}</head>" } }
-    { if my $body = %!html<body>
-      {
-        # remove redundant pre tags
-        "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>"
-      }
-    }
-    </html>
-    END
+    $/.make: $<pod-section>».made;
   }
+
+  method pod-section ($/)
+  {
+    # no list() elements?
+    say $/.perl;
+
+    my $pod;
+    for $/.list.values -> $value
+    {
+      $pod ~= $value.made;
+    }
+    $/.make($pod);
+  }
+
+  multi method command-block:cut ($/) { $/.make('') }
 
   multi method command-block:head1 ($/)
   {
-    self.add_to_html('body', "<h1>{$/<singleline_text>.Str}</h1>\n");
+    $/.make("<h1>{$/<singleline_text>.Str}</h1>\n");
   }
 
   multi method command-block:head2 ($/)
   {
-    self.add_to_html('body', "<h2>{$/<singleline_text>.Str}</h2>\n");
+    $/.make("<h2>{$/<singleline_text>.Str}</h2>\n");
   }
 
   multi method command-block:head3 ($/)
   {
-    self.add_to_html('body', "<h3>{$/<singleline_text>.Str}</h3>\n");
+    $/.make("<h3>{$/<singleline_text>.Str}</h3>\n");
   }
 
   multi method command-block:head4 ($/)
   {
-    self.add_to_html('body', "<h4>{$/<singleline_text>.Str}</h4>\n");
+    $/.make("<h4>{$/<singleline_text>.Str}</h4>\n");
   }
 
   method paragraph ($match)
@@ -91,29 +88,24 @@ class Pod::Perl5::ToHTML
     {
       $para_text = $para_text.subst($pair.key, {$pair.value});
     }
-
-    # buffer the text if we're in a list
-    if @!list_stack.elems > 0
-    {
-      $match.make("<p>{$para_text}</p>\n");
-    }
-    else
-    {
-      self.add_to_html('body', "<p>{$para_text}</p>\n");
-    }
+    $match.make("<p>{$para_text}</p>\n");
     self.clear_buffer('paragraph');
   }
 
   method verbatim_paragraph ($/)
   {
-    self.add_to_html('body', "<pre>{$/.Str}</pre>\n");
+    $/.make("<pre>{$/.Str}</pre>\n");
   }
 
   multi method command-block:begin_end ($match)
   {
     if $match<begin><name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$match<begin_end_content>.Str}\n");
+      $match.make("{$match<begin_end_content>.Str}\n");
+    }
+    else
+    {
+      $match.make('');
     }
   }
 
@@ -121,7 +113,11 @@ class Pod::Perl5::ToHTML
   {
     if $match<name>.Str.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$match<singleline_text>.Str}\n");
+      $match.make("{$match<singleline_text>.Str}\n");
+    }
+    else
+    {
+      $match.make('');
     }
   }
 
@@ -134,6 +130,7 @@ class Pod::Perl5::ToHTML
       $encoding = %.encoding_map{$encoding};
     }
     self.add_to_html('head', qq{<meta charset="$encoding">\n});
+    $/.make('');
   }
 
   multi method format-code:italic ($/)
@@ -222,25 +219,35 @@ class Pod::Perl5::ToHTML
     self.add_to_buffer('paragraph', $original_string => qq|<a href="{$url}">{$text}</a>|);
   }
 
-  # ignoring ol
+  # ignoring ol for now
+  multi method command-block:over_back ($/)
+  {
+    my $over_back = $/<over>.made;
+
+    for $/[1].values -> $value
+    {
+      $over_back ~= $value.made;
+    }
+    $over_back ~= $/<back>.made;
+    $/.make($over_back);
+  }
+
   method over ($/)
   {
-    # assume it's an unordered list
-    my $list_type = 'ul';
-
-    # the stack is a FIFO store which remembers if we're in a list, and what type
-    @!list_stack.push($list_type);
-    self.add_to_html('body', "<{$list_type}>\n");
+    $/.make('<ul>');
   }
 
   method _item ($/)
   {
-    self.add_to_html('body', "<li>\n{$/<paragraph>.made}</li>\n");
+    $/.make("<li>\n{$/<paragraph>.made}</li>\n");
   }
 
   method back ($/)
   {
-    my $list_type = @!list_stack.pop;
-    self.add_to_html('body', "</{$list_type}>\n");
+    $/.make('</ul>');
   }
+
+  method command-block:pod ($/) { $/.make('') }
+  method blank_line        ($/) { $/.make('') }
 }
+
