@@ -8,7 +8,9 @@
 
 =include test-corpus/PerlTricks/briandfoy.pod
 
-=meta-tags unit testing data table perl tdd
+=tags unit testing data table perl tdd
+
+=cover-image L<file://onion_charcoal.png>
 
 How can I easily run the same tests on different data without duplicating a lot of code? If I follow my usual pattern, I start off with a couple of tests where I write some code then cut-and-paste that a couple of times. I add a few more tests before I realize I have a mess. If I had the foresight to know that I would make a mess (again), I would have started with a table of data and a little bit of code that went through it.
 
@@ -51,7 +53,7 @@ The mess I might make to test this starts with a single input and output with th
     $n =~ s/(\.\d+)|(?<=\d)(?=(?:\d\d\d)+\b)/$1 || ','/rge;
     }
 
-  my $class = 'String::Sprintf';  
+  my $class = 'String::Sprintf';
   use_ok( $class );
 
   my $f = String::Sprintf->formatter(
@@ -129,11 +131,23 @@ As I go on things get more complicated. If a test fails, I want some extra infor
 
 My code for the test behavior changed but I didn't have to mess with the input data at all. The particular code in this case doesn't matter. This table-driven testing separates the inputs and the tests; that's what you should pay attention to.
 
-It can get even better. So far, I've put all the input data in the test file itself, but now that it's separate from the test code, I can grab the input from somewhere else. That might be a tab-separated values file:
+It can get even better. So far, I've put all the input data in the test file itself, but now that it's separate from the test code, I can grab the input from somewhere else, like a database table:
 
-  %.2N  1234.56 1,234.56 
-  %.2N  1234  1,234.00
-  %.0N  1234.49 1,234
+=table
+
+  %.2N | 1234.56 | 1,234.56
+  %.2N | 1234    | 1,234.00
+  %.0N | 1234.49 | 1,234
+
+Or a pipe separated values file:
+
+=begin output
+
+  %.2N|1234.56|1,234.56
+  %.2N|1234|1,234.00
+  %.0N|1234.49|1,234
+
+=end output
 
 I create C<@data> in the test file by reading and parsing the external file:
 

@@ -3,13 +3,13 @@ use Pod::Perl5::Grammar;
 grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
 {
   # new formatting codes!
-  multi token format-code:hashtag   { '#'\< <name> \> }
-  multi token format-code:twitter   { '@'\< <name> \> }
   multi token format-code:data      {  D \< <multiline_text> \> }
   multi token format-code:github    {  G \< <singleline_format_text> \> }
+  multi token format-code:hashtag   { '#'\< <name> \> }
   multi token format-code:metacpan  {  M \< <name> \> }
   multi token format-code:note      {  N \< <multiline_text> \> }
   multi token format-code:terminal  {  T \< <multiline_text> \> }
+  multi token format-code:twitter   { '@'\< <name> \> }
   multi token format-code:wikipedia {  W \< <singleline_format_text> \> }
 
   # new command blocks!
@@ -21,7 +21,7 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
 
     # now parse the file
     {
-      $/<file>.make(self.parsefile($/<file>, :actions($*ACTIONS)));
+      $<file>.make(self.parsefile($<file>, :actions($*ACTIONS)));
       CATCH { die "Error parsing =include directive $_" }
     }
   }
@@ -30,12 +30,12 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   token file { \V+ }
 
   # author metadata
-  multi token command-block:author-name { ^^\=author\-name \h+ <singleline_text> \n }
-  multi token command-block:author-bio  { ^^\=author\-bio  \h+ <singleline_text> \n }
-  multi token command-block:author-img  { ^^\=author\-img  \h+ <singleline_text> \n }
+  multi token command-block:author-name  { ^^\=author\-name  \h+ <singleline_text> \n }
+  multi token command-block:author-bio   { ^^\=author\-bio   \h+ <singleline_text> \n }
+  multi token command-block:author-image { ^^\=author\-image \h+ <format-code:link>\n }
 
-  # article meta tags e.g. "perl", "internet", "database", "reddit" whatever
-  multi token command-block:meta-tags { ^^\=meta\-tags [\h+ <name> ]+ \n }
+  # article metadata
+  multi token command-block:tags { ^^\=tags [\h+ <name> ]+ \n }
 
   # these regexes on need to be on multiple lines to avoid warnings ...
   # YYYY-MM-DD
@@ -62,8 +62,10 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   multi token command-block:publish-date
   {
     ^^\=publish\-date \h+ <datetime> \n
-    # validate the date
-    #{ DateTime.new($/<datetime>.Str); CATCH { die "Error parsing =publish-date $_" } }
+    {
+      $<datetime>.make(DateTime.new($/<datetime>.Str));
+      CATCH { die "Error parsing =publish-date $_" }
+    }
   }
 
   multi token command-block:chapter  { ^^\=chapter \h+ <singleline_text> \n }
@@ -71,5 +73,22 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   multi token command-block:subtitle { ^^\=subtitle \h+ <singleline_text> \n }
   multi token command-block:section  { ^^\=section \h+ <singleline_text> \n }
 
-  # to do: =table, =img, IMG<>
+  # images
+  multi token command-block:image       { ^^\=image \h+ <format-code:link> \n }
+  multi token command-block:cover-image { ^^\=cover\-image \h+ <format-code:link> \n }
+
+  # table
+  multi token command-block:table
+  {
+    ^^\=table \h* \n
+    <blank_line>?
+    <header_row>
+    <row>+
+    <blank_line>
+  }
+  token header_row  { ^^ \h* <header_cell> [<divider> <header_cell>]* \n }
+  token row         { ^^ \h* <cell> [<divider> <cell>]* \n }
+  token header_cell { [<!before <divider>>\V]+ }
+  token cell        { [<!before <divider>>\V]+ }
+  token divider     { \h+\|\h+ }
 }
