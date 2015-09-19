@@ -1,9 +1,8 @@
 use Test;
 use lib 'lib';
+use Pod::Perl5::Grammar;
 
-plan 5;
-
-use Pod::Perl5::Grammar; pass "Import Pod::Perl5::Grammar";
+plan 4;
 
 ok my $match = Pod::Perl5::Grammar.parsefile('test-corpus/for.pod'), 'parse for command';
 

@@ -1,9 +1,8 @@
 use Test;
 use lib 'lib';
+use Pod::Perl5::Grammar;
 
-plan 7;
-
-use Pod::Perl5::Grammar; pass "Import Pod::Perl5::Grammar";
+plan 6;
 
 ok my $match = Pod::Perl5::Grammar.parsefile('test-corpus/begin_end.pod'), 'parse begin/end command';
 is $match<pod-section>[0]<command-block>.elems, 2, 'Parser extracted two begin/end pairs';
