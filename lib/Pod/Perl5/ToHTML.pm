@@ -1,217 +1,249 @@
 class Pod::Perl5::ToHTML
 {
-  # this attribute contains the html
-  has $.output_string is rw;
+  # meta directives like encoding
+  has $!meta;
 
-  # this maps pod encoding values to their HTML equivalent
-  # if no mapping is found, the pod encoding value will be
-  # used
-  has %.encoding_map = utf8 => 'UTF-8';
-
-  # %html is where the converted markup is added
-  has %!html = head => '', body => '';
-
-  # when we're in a list, we buffer paragraph content
-  # this FIFO stack records whether we're in a list and the list type
-  # a stack is useful for nested lists!
-  has @!list_stack = Array.new();
-
-  method add_to_html (Str:D $section_name, Str:D $string)
+  sub stringify-match ($match)
   {
-    die "Section $section_name doesn't exist!" unless %!html{$section_name}:exists;
-    %!html{$section_name} ~= $string;
+    my $pod = '';
+    for $match.caps -> $value
+    {
+      $pod ~= $value.value.made;
+    }
+    return $pod;
   }
 
-  # buffer is used as a temporary store when formatting needs to
-  # be nested, e.g.: <p><i>some text</i></p>
-  # the italicised text is stored in the paragraph buffer
-  # and when the paragraph() executes, it replaces its
-  # contents with the buffer
-  has %!buffer = paragraph => Array.new();
-
-  method get_buffer (Str:D $buffer_name) is rw
-  {
-    die ("buffer {$buffer_name} does not exist!") unless %!buffer{$buffer_name}:exists;
-    return-rw %!buffer{$buffer_name}; # return-rw required, a naked "return" forces ro
-  }
-
-  method add_to_buffer (Str:D $buffer_name, Pair:D $pair)
-  {
-    self.get_buffer($buffer_name).push($pair);
-  }
-
-  method clear_buffer (Str:D $buffer_name)
-  {
-    self.get_buffer($buffer_name) = Array.new();
-  }
-
-  # once parsing is complete, this method is executed
-  # we format and print the $html
   method TOP ($match)
   {
-    self.output_string = qq:to/END/;
-    <html>
-    { if my $head = %!html<head> { "<head>\n{$head}</head>" } }
-    { if my $body = %!html<body>
+    my $head = $!meta ?? "\n<head>{$!meta}\n</head>" !! '';
+    my $body = "\n<body>{stringify-match($match)}\n</body>";
+    $match.make("<html>{$head}{$body}\n</html>\n");
+  }
+
+  method pod-section ($match)
+  {
+    $match.make(stringify-match($match));
+  }
+
+  #######################
+  # Text
+  #######################
+  method verbatim-paragraph ($match)
+  {
+    my ($leading_space, $text);
+
+    for $match.caps -> $pair
+    {
+      my $line = $pair.value;
+      unless ($leading_space.defined)
       {
-        # remove redundant pre tags
-        "<body>\n{$body.subst(/\<\/pre\>\s*\<pre\>/, {''}, :g)}</body>"
+        $line ~~ /^$<leading_space>=[\h+]/;
+        $leading_space = $<leading_space>.Str;
       }
+      $text ~= $line.subst(/^$leading_space/, '');
     }
-    </html>
-    END
-  }
-
-  multi method command-block:head1 ($/)
-  {
-    self.add_to_html('body', "<h1>{$/<singleline_text>.Str}</h1>\n");
-  }
-
-  multi method command-block:head2 ($/)
-  {
-    self.add_to_html('body', "<h2>{$/<singleline_text>.Str}</h2>\n");
-  }
-
-  multi method command-block:head3 ($/)
-  {
-    self.add_to_html('body', "<h3>{$/<singleline_text>.Str}</h3>\n");
-  }
-
-  multi method command-block:head4 ($/)
-  {
-    self.add_to_html('body', "<h4>{$/<singleline_text>.Str}</h4>\n");
+    $match.make("\n<pre>{$text}</pre>");
   }
 
   method paragraph ($match)
   {
-    my $original_text = $match<paragraph_node>.join('').Str.chomp;
-    my $para_text = $original_text;
+    $match.make("\n<p>{$match<multiline-text>.made}</p>");
+  }
 
-    for self.get_buffer('paragraph').reverse -> $pair # reverse as we're working outside in, replacing all formatting strings with their HTML
-    {
-      $para_text = $para_text.subst($pair.key, {$pair.value});
-    }
+  method any-text        ($match) { $match.make($match.Str) }
+  method no-vertical     ($match) { $match.make($match.Str) }
+  method blank-line      ($match) { $match.make("\n")       }
+  method name            ($match) { $match.make($match.Str) }
+  method singleline-text ($match) { $match.make($match.Str) }
+  method singleline-format-text
+                         ($match) { $match.make($match.Str) }
 
-    # buffer the text if we're in a list
-    if @!list_stack.elems > 0
+  method format-text ($match)
+  {
+    $match.make(stringify-match($match));
+  }
+
+  method multiline-text ($match)
+  {
+    $match.make(stringify-match($match));
+  }
+
+  method section ($match) { $match.make($match.Str) }
+
+  ########################
+  # command blocks
+  ########################
+  method cut ($match) { $match.make('') }
+
+  multi method command-block:head1 ($match)
+  {
+    $match.make("\n<h1>{$match<singleline-text>.made}</h1>");
+  }
+
+  multi method command-block:head2 ($match)
+  {
+    $match.make("\n<h2>{$match<singleline-text>.made}</h2>");
+  }
+
+  multi method command-block:head3 ($match)
+  {
+    $match.make("\n<h3>{$match<singleline-text>.made}</h3>");
+  }
+
+  multi method command-block:head4 ($match)
+  {
+    $match.make("\n<h4>{$match<singleline-text>.made}</h4>");
+  }
+
+  multi method command-block:begin-end ($match)
+  {
+    if $match<begin><name>.made.match(/^ HTML $/, :i)
     {
-      $match.make("<p>{$para_text}</p>\n");
+      $match.make("\n{$match<begin-end-content>.Str}");
     }
     else
     {
-      self.add_to_html('body', "<p>{$para_text}</p>\n");
-    }
-    self.clear_buffer('paragraph');
-  }
-
-  method verbatim_paragraph ($/)
-  {
-    self.add_to_html('body', "<pre>{$/.Str}</pre>\n");
-  }
-
-  multi method command-block:begin_end ($match)
-  {
-    if $match<begin><name>.Str.match(/^ HTML $/, :i)
-    {
-      self.add_to_html('body', "{$match<begin_end_content>.Str}\n");
+      $match.make('');
     }
   }
+
+  multi method begin-end-content ($match) { $match.make('') }
+  multi method begin             ($match) { $match.make('') }
+  multi method _end              ($match) { $match.make('') }
 
   multi method command-block:_for ($match)
   {
-    if $match<name>.Str.match(/^ HTML $/, :i)
+    if $match<name>.made.match(/^ HTML $/, :i)
     {
-      self.add_to_html('body', "{$match<singleline_text>.Str}\n");
+      $match.make("\n{$match<singleline-text>.made}");
+    }
+    else
+    {
+      $match.make('');
     }
   }
 
-  multi method command-block:encoding ($/)
+  multi method command-block:encoding ($match)
   {
-    my $encoding = $/<name>.Str;
+    # "utf8" is a common Pod encoding, it should be UTF-8 in HTML
+    my $pod_encoding = $match<name>.made;
+    my $html_encoding = $pod_encoding eq 'utf8' ?? 'UTF-8' !! $pod_encoding;
 
-    if %.encoding_map{$encoding}:exists
+    # save in meta to be used in <head> later
+    $!meta ~= qq/\n<meta charset="$html_encoding">/;
+
+    # make an empty string so the encoding is not returned inline
+    $match.make('');
+  }
+
+  multi method command-block:over-back ($match)
+  {
+    # peak at the first bullet point to decide if it's
+    # an ordered or unordered list
+    if ($match<_item>:exists
+        && $match<_item>[0]<bullet-point>.Str ~~ /^<[0..9]>+$/)
     {
-      $encoding = %.encoding_map{$encoding};
+      $match.make("\n<ol>{ stringify-match($match) }\n</ol>");
     }
-    self.add_to_html('head', qq{<meta charset="$encoding">\n});
+    else
+    {
+      $match.make("\n<ul>{ stringify-match($match) }\n</ul>");
+    }
   }
 
-  multi method format-code:italic ($/)
+  method over ($match)         { $match.make('') }
+  method back ($match)         { $match.make('') }
+  method bullet-point ($match) { $match.make('') }
+
+  method _item ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "<i>{$/<multiline_text>.Str}</i>");
+    $match.make("\n<li>{ $match.make(stringify-match($match)) }</li>");
   }
 
-  multi method format-code:bold ($/)
+
+  method command-block:pod ($match) { $match.make('') }
+
+  ########################
+  # formatting codes
+  ########################
+  multi method format-code:italic ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "<b>{$/<multiline_text>.Str}</b>");
+    $match.make("<i>{$match<format-text>.made}</i>");
   }
 
-  multi method format-code:code ($/)
+  multi method format-code:bold ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "<code>{$/<multiline_text>.Str}</code>");
+    $match.make("<b>{$match<format-text>.made}</b>");
   }
 
-  multi method format-code:escape ($/)
+  multi method format-code:code ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "&{$/<singleline_format_text>.Str};");
+    $match.make("<code>{$match<format-text>.made}</code>");
+  }
+
+  # html encode this
+  multi method format-code:escape ($match)
+  {
+    $match.make("&{$match<format-text>.made};");
   }
 
   # spec says to display in italics
-  multi method format-code:filename ($/)
+  multi method format-code:filename ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "<i>{$/<singleline_format_text>.Str}</i>");
+    $match.make("<i>{$match<format-text>.made}</i>");
   }
 
-  # singleline shouldn't break across lines, use <pre> to preserve the layout
-  multi method format-code:singleline ($/)
+  # singleline shouldn't break across lines ...
+  multi method format-code:singleline ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "<pre>{$/<singleline_format_text>.Str}</pre>");
+    $match.make("<pre>{$match<format-text>.made}</pre>");
   }
 
-  # ignore index and zeroeffect
-  multi method format-code:index ($/)
+  # perlpod says index should be an empty string
+  multi method format-code:index ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "");
+    $match.make('');
   }
-  multi method format-code:zeroeffect ($/)
+
+  # literally capture any text between zeroeffect
+  multi method format-code:zeroeffect ($match)
   {
-    self.add_to_buffer('paragraph', $/.Str => "");
+    $match.make($match<format-text>.Str);
   }
 
   multi method format-code:link ($match)
   {
-    my $original_string = $match;
     my ($url, $text) = ("","");
 
-    if $match<url>:exists and $match<singleline_format_text>:exists
+    if $match<url>:exists and $match<singleline-format-text>:exists
     {
-      $text = $match<singleline_format_text>.Str;
-      $url  = $match<url>.Str;
+      $text = $match<singleline-format-text>.made;
+      $url  = $match<url>.made;
     }
     elsif $match<url>:exists
     {
-      $text = $match<url>.Str;
-      $url  = $match<url>.Str;
+      $text = $match<url>.made;
+      $url  = $match<url>.made;
     }
-    elsif $match<singleline_format_text>:exists and $match<name>:exists and $match<section>:exists
+    elsif $match<singleline-format-text>:exists and $match<name>:exists and $match<section>:exists
     {
-      $text = $match<singleline_format_text>.Str;
-      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html#{$match<section>.Str}";
+      $text = $match<singleline-format-text>.made;
+      $url  = "http://perldoc.perl.org/{$match<name>.made}.html#{$match<section>.made}";
     }
     elsif $match<name>:exists and $match<section>:exists
     {
-      $text = "{$match<name>.Str}#{$match<section>.Str}";
-      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html#{$match<section>.Str}";
+      $text = "{$match<name>.made}#{$match<section>.made}";
+      $url  = "http://perldoc.perl.org/{$match<name>.made}.html#{$match<section>.made}";
     }
     elsif $match<name>:exists
     {
-      $text = $match<name>.Str;
-      $url  = "http://perldoc.perl.org/{$match<name>.Str}.html";
+      $text = $match<name>.made;
+      $url  = "http://perldoc.perl.org/{$match<name>.made}.html";
     }
     else #must just be a section on current doc
     {
-      $text = $<section>.Str;
-      $url  = "#{$match<section>.Str}";
+      $text = $<section>.made;
+      $url  = "#{$match<section>.made}";
     }
 
     # replace "::" with slash for the perldoc URLs
@@ -219,28 +251,11 @@ class Pod::Perl5::ToHTML
     {
       $url = $url.subst('::', {'/'}, :g);
     }
-    self.add_to_buffer('paragraph', $original_string => qq|<a href="{$url}">{$text}</a>|);
+    $match.make(qq|<a href="{$url}">{$text}</a>|);
   }
 
-  # ignoring ol
-  method over ($/)
+  method url ($match)
   {
-    # assume it's an unordered list
-    my $list_type = 'ul';
-
-    # the stack is a FIFO store which remembers if we're in a list, and what type
-    @!list_stack.push($list_type);
-    self.add_to_html('body', "<{$list_type}>\n");
-  }
-
-  method _item ($/)
-  {
-    self.add_to_html('body', "<li>\n{$/<paragraph>.made}</li>\n");
-  }
-
-  method back ($/)
-  {
-    my $list_type = @!list_stack.pop;
-    self.add_to_html('body', "</{$list_type}>\n");
+    $match.make($match.Str);
   }
 }
