@@ -135,6 +135,7 @@ It can get even better. So far, I've put all the input data in the test file its
 
 =table
 
+  ColA | ColB    | ColC
   %.2N | 1234.56 | 1,234.56
   %.2N | 1234    | 1,234.00
   %.0N | 1234.49 | 1,234
