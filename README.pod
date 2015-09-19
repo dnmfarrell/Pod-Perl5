@@ -2,17 +2,15 @@
 
 =head1 NAME
 
-Pod::Perl5
+Pod::Perl5 - a parser for Perl 5 style pod markup.
 
 =head1 VERSION
 
-0.09
+0.10
 
 =head1 DESCRIPTION
 
-This is a Perl 6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>.
-The parser can parse inline pod and standalone F<*.pod> files and supports all pod syntax. It also comes with
-a pod-to-html action class for the grammar C<Pod::Perl5::ToHTML>.
+This is a Perl 6 module for parsing Perl 5 pod. The grammar for this module lives at C<Pod::Perl5::Grammar>. The parser can parse inline pod and standalone F<*.pod> files and supports all pod syntax. It also comes with a pod-to-html action class for the grammar C<Pod::Perl5::ToHTML>.
 
 =head1 SYNOPSIS
 
