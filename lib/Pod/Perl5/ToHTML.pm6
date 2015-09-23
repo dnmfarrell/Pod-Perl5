@@ -259,3 +259,5 @@ class Pod::Perl5::ToHTML
     $match.make($match.Str);
   }
 }
+
+# vim: filetype=perl6
