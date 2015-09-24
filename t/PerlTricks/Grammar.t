@@ -1,3 +1,6 @@
+#!/usr/bin/env perl6
+# These are tests for the PerlTricks pseudopod grammar
+
 use Test;
 use lib 'lib';
 
@@ -38,6 +41,3 @@ ok my $table = $match<pod-section>[0]<command-block>[7], 'table';
 is $table<header-row><header-cell>.elems, 3, 'match 3 headings';
 is $table<header-row><header-cell>[2].Str, 'ColC', 'match third heading';
 is $table<row>[1]<cell>[1].Str, '1234', 'match middle cell';
-
-
-

@@ -37,7 +37,6 @@ grammar Pod::Perl5::PerlTricks::Grammar is Pod::Perl5::Grammar
   # article metadata
   multi token command-block:tags { ^^\=tags [\h+ <name> ]+ \n }
 
-  # these regexes on need to be on multiple lines to avoid warnings ...
   # YYYY-MM-DD
   token date {
     <[0..9]> ** 4 \- <[0..1]> <[0..9]> \- <[0..3]> <[0..9]>
