@@ -7,7 +7,7 @@
     "provides" : {
       "Pod::Perl5" : "lib/Pod/Perl5.pm6",
       "Pod::Perl5::Grammar" : "lib/Pod/Perl5/Grammar.pm6",
-      "Pod::Perl5::ToHTML"  : "lib/Pod/Perl5/ToHTML.pm6"
+      "Pod::Perl5::ToHTML"  : "lib/Pod/Perl5/ToHTML.pm6",
       "Pod::Perl5::ToMarkdown"  : "lib/Pod/Perl5/ToMarkdown.pm6"
     },
     "source-type" : "git",
