@@ -1,7 +1,12 @@
+use URI::Encode;
+
 class Pod::Perl5::ToHTML
 {
   # meta directives like encoding
   has $!meta;
+
+  my $indent_level = 0;
+  my $indent_text  = '  ';
 
   sub stringify-match ($match)
   {
@@ -16,8 +21,10 @@ class Pod::Perl5::ToHTML
   method TOP ($match)
   {
     my $head = $!meta ?? "\n<head>{$!meta}\n</head>" !! '';
-    my $body = "\n<body>{stringify-match($match)}\n</body>";
-    $match.make("<html>{$head}{$body}\n</html>\n");
+    my $body = "\n<body>\n{stringify-match($match)}\n</body>";
+    my $html = "<html>{$head}{$body}\n</html>\n";
+    # remove double blank lines
+    $match.make($html.subst(/\n ** 3..*/, {"\n\n"}, :g));
   }
 
   method pod-section ($match)
@@ -42,12 +49,12 @@ class Pod::Perl5::ToHTML
       }
       $text ~= $line.subst(/^$leading_space/, '');
     }
-    $match.make("\n<pre>{$text}</pre>");
+    $match.make("<pre>{$text.subst(/\n+$/, '')}</pre>\n");
   }
 
   method paragraph ($match)
   {
-    $match.make("\n<p>{$match<multiline-text>.made}</p>");
+    $match.make($indent_text x $indent_level ~ "<p>{$match<multiline-text>.made}</p>\n");
   }
 
   method any-text        ($match) { $match.make($match.Str) }
@@ -65,7 +72,7 @@ class Pod::Perl5::ToHTML
 
   method multiline-text ($match)
   {
-    $match.make(stringify-match($match));
+    $match.make(stringify-match($match).subst(/\n+$/, ''));
   }
 
   method section ($match) { $match.make($match.Str) }
@@ -77,29 +84,29 @@ class Pod::Perl5::ToHTML
 
   multi method command-block:head1 ($match)
   {
-    $match.make("\n<h1>{$match<singleline-text>.made}</h1>");
+    $match.make("<h1>{$match<singleline-text>.made}</h1>\n");
   }
 
   multi method command-block:head2 ($match)
   {
-    $match.make("\n<h2>{$match<singleline-text>.made}</h2>");
+    $match.make("<h2>{$match<singleline-text>.made}</h2>\n");
   }
 
   multi method command-block:head3 ($match)
   {
-    $match.make("\n<h3>{$match<singleline-text>.made}</h3>");
+    $match.make("\<h3>{$match<singleline-text>.made}</h3>\n");
   }
 
   multi method command-block:head4 ($match)
   {
-    $match.make("\n<h4>{$match<singleline-text>.made}</h4>");
+    $match.make("<h4>{$match<singleline-text>.made}</h4>\n");
   }
 
   multi method command-block:begin-end ($match)
   {
     if $match<begin><name>.made.match(/^ HTML $/, :i)
     {
-      $match.make("\n{$match<begin-end-content>.Str}");
+      $match.make("{$match<begin-end-content>.Str}");
     }
     else
     {
@@ -115,7 +122,7 @@ class Pod::Perl5::ToHTML
   {
     if $match<name>.made.match(/^ HTML $/, :i)
     {
-      $match.make("\n{$match<singleline-text>.made}");
+      $match.make("{$match<singleline-text>.made}");
     }
     else
     {
@@ -143,23 +150,28 @@ class Pod::Perl5::ToHTML
     if ($match<_item>:exists
         && $match<_item>[0]<bullet-point>.Str ~~ /^<[0..9]>+$/)
     {
-      $match.make("\n<ol>{ stringify-match($match) }\n</ol>");
+      $match.make("\n{$indent_text x $indent_level}<ol>{
+        stringify-match($match) ~ $indent_text x $indent_level}</ol>\n");
     }
     else
     {
-      $match.make("\n<ul>{ stringify-match($match) }\n</ul>");
+      $match.make("\n{$indent_text x $indent_level}<ul>{
+        stringify-match($match) ~ $indent_text x $indent_level}</ul>\n");
     }
   }
 
-  method over ($match)         { $match.make('') }
-  method back ($match)         { $match.make('') }
-  method bullet-point ($match) { $match.make('') }
+  method over ($match) { $match.make(''); $indent_level++ }
+  method back ($match) { $match.make(''); $indent_level-- }
+
+  method bullet-point ($match)
+  {
+    $match.make('');
+  }
 
   method _item ($match)
   {
-    $match.make("\n<li>{ $match.make(stringify-match($match)) }</li>");
+    $match.make($indent_text x $indent_level ~ "<li>{ stringify-match($match).subst(/\n+$/, '') }</li>\n");
   }
-
 
   method command-block:pod ($match) { $match.make('') }
 
@@ -228,17 +240,17 @@ class Pod::Perl5::ToHTML
     elsif $match<singleline-format-text>:exists and $match<name>:exists and $match<section>:exists
     {
       $text = $match<singleline-format-text>.made;
-      $url  = "http://perldoc.perl.org/{$match<name>.made}.html#{$match<section>.made}";
+      $url  = build_url($match<name>.made, $match<section>.made);
     }
     elsif $match<name>:exists and $match<section>:exists
     {
       $text = "{$match<name>.made}#{$match<section>.made}";
-      $url  = "http://perldoc.perl.org/{$match<name>.made}.html#{$match<section>.made}";
+      $url  = build_url($match<name>.made, $match<section>.made);
     }
     elsif $match<name>:exists
     {
       $text = $match<name>.made;
-      $url  = "http://perldoc.perl.org/{$match<name>.made}.html";
+      $url  = build_url($match<name>.made);
     }
     else #must just be a section on current doc
     {
@@ -247,7 +259,7 @@ class Pod::Perl5::ToHTML
     }
 
     # replace "::" with slash for the perldoc URLs
-    if $url ~~ m/^https?\:\/\/perldoc\.perl\.org/
+    if $url ~~ /^https?\:\/\/perldoc\.perl\.org/
     {
       $url = $url.subst('::', {'/'}, :g);
     }
@@ -256,7 +268,16 @@ class Pod::Perl5::ToHTML
 
   method url ($match)
   {
-    $match.make($match.Str);
+    $match.make( uri_encode($match.Str) );
+  }
+
+  # decide whether to link to perldoc or metacpan
+  # modules usually begin with a capital letter
+  sub build_url (Str:D $path, $section?)
+  {
+    return $path ~~ /^<[A..Z]>/
+      ?? "https://metacpan.org/pod/{$path}{ $section ?? qq/#$section/ !! ''}"
+      !! "http://perldoc.perl.org/{$path}.html{ $section ?? qq/#$section/ !! ''}";
   }
 }
 

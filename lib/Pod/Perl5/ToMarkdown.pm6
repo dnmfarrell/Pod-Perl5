@@ -53,7 +53,7 @@ class Pod::Perl5::ToMarkdown
 
   method multiline-text ($match)
   {
-    $match.make(stringify-match($match));
+    $match.make(stringify-match($match).subst(/\n$/, ''));
   }
 
   method section ($match) { $match.make($match.Str) }
