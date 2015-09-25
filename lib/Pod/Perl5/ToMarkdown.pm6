@@ -35,7 +35,7 @@ class Pod::Perl5::ToMarkdown
 
   method paragraph ($match)
   {
-    $match.make($match<multiline-text>.made);
+    $match.make("{$match<multiline-text>.made}\n");
   }
 
   method any-text        ($match) { $match.make($match.Str) }

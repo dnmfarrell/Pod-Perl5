@@ -34,15 +34,11 @@ FreeBSD, see LICENSE file
 # SEE ALSO
 
 * [perlpod documentation](http%3A%2F%2Fperldoc.perl.org%2Fperlpod.html) is the reference spec for this grammar
-
 * 
-
 [perlvar#DESCRIPTION](http://perldoc.perl.org/perlvar.html#DESCRIPTION) should convert into a perldoc link to perlvar with a section
 
     1. [This is a link for the Time::Piece module](https://metacpan.org/pod/Time::Piece#USAGE) should convert into a perldoc link to Time::Piece
-
     2. [Time::Piece](https://metacpan.org/pod/Time::Piece) should convert into a perldoc link to Time::Piece
-
     3. [https%3A%2F%2Fgithub.com](https%3A%2F%2Fgithub.com) should just be a pure url (text and href equal)
 
 * [perlpod](http://perldoc.perl.org/perlpod.html) *should* convert into a link to perlpod
