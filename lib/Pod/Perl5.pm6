@@ -1,7 +1,8 @@
 use Pod::Perl5::Grammar;
 use Pod::Perl5::ToHTML;
+use Pod::Perl5::ToMarkdown;
 
-class Pod::Perl5:ver<0.11>
+class Pod::Perl5:ver<0.12>
 {
   our sub parse-file (Str:D $filepath, $actions?)
   {
@@ -52,6 +53,18 @@ class Pod::Perl5:ver<0.11>
   our sub file-to-html (Str:D $filepath)
   {
     my $actions = Pod::Perl5::ToHTML.new;
+    return parse-file($filepath, $actions).made;
+  }
+
+  our sub string-to-markdown (Str:D $pod)
+  {
+    my $actions = Pod::Perl5::ToMarkdown.new;
+    return parse-string($pod, $actions).made;
+  }
+
+  our sub file-to-markdown (Str:D $filepath)
+  {
+    my $actions = Pod::Perl5::ToMarkdown.new;
     return parse-file($filepath, $actions).made;
   }
 }
