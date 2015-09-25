@@ -6,7 +6,7 @@ Pod::Perl5 - a parser for Perl 5 pod
 
 =head1 VERSION
 
-0.12
+0.13
 
 =head1 DESCRIPTION
 
