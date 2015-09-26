@@ -1,5 +1,3 @@
-use URI::Encode;
-
 class Pod::Perl5::ToMarkdown
 {
   # stringify all captures .asts
@@ -239,7 +237,7 @@ class Pod::Perl5::ToMarkdown
 
   method url ($match)
   {
-    $match.make( uri_encode($match.Str) );
+    $match.make( $match.Str );
   }
 
   # decide whether to link to perldoc or metacpan

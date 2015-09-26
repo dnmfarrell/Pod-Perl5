@@ -1,5 +1,3 @@
-use URI::Encode;
-
 class Pod::Perl5::ToHTML
 {
   # meta directives like encoding
@@ -268,7 +266,7 @@ class Pod::Perl5::ToHTML
 
   method url ($match)
   {
-    $match.make( uri_encode($match.Str) );
+    $match.make( $match.Str );
   }
 
   # decide whether to link to perldoc or metacpan

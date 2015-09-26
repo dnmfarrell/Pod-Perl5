@@ -1,9 +1,9 @@
 {
     "name" : "Pod::Perl5",
-    "version" : "0.14",
+    "version" : "0.15",
     "description" : "Parser and grammar for Perl 5 pod, with an HTML and Markdown converter",
     "author" : "David Farrell",
-    "depends" : [ "URI::Encode" ],
+    "depends" : [ ],
     "provides" : {
       "Pod::Perl5" : "lib/Pod/Perl5.pm6",
       "Pod::Perl5::Grammar" : "lib/Pod/Perl5/Grammar.pm6",
