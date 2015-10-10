@@ -1,7 +1,7 @@
 class Pod::Perl5::ToHTML
 {
   # meta directives like encoding
-  has %!meta;
+  has %.meta;
 
   my $indent_level = 0;
   my $indent_text  = '  ';
@@ -18,8 +18,8 @@ class Pod::Perl5::ToHTML
 
   method TOP ($match)
   {
-    my $head = %!meta.elems
-      ?? "\n<head>\n{[~] (for %!meta.values {$_ ~="\n"}).values}</head>" !! '';
+    my $head = %.meta.elems
+      ?? "\n<head>\n{[~] (for %.meta.values {$_ ~="\n"}).values}</head>" !! '';
     my $body = "\n<body>\n{stringify-match($match)}\n</body>";
     my $html = "<html>{$head}{$body}\n</html>\n";
     # remove double blank lines
@@ -136,7 +136,7 @@ class Pod::Perl5::ToHTML
     my $html_encoding = $pod_encoding eq 'utf8' ?? 'UTF-8' !! $pod_encoding;
 
     # save in meta to be used in <head> later
-    %!meta<charset> = "<meta charset=\"$html_encoding\">";
+    %.meta<charset> = "<meta charset=\"$html_encoding\">";
 
     # make an empty string so the encoding is not returned inline
     $match.make('');
