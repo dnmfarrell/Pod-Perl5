@@ -1,6 +1,6 @@
 {
     "name" : "Pod::Perl5",
-    "version" : "0.11",
+    "version" : "0.12",
     "description" : "Parser and grammar for Perl 5 pod, with an HTML converter",
     "author" : "David Farrell",
     "depends" : [],
