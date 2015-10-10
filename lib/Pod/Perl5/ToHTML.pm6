@@ -168,12 +168,12 @@ class Pod::Perl5::ToHTML
   ########################
   multi method format-code:italic ($match)
   {
-    $match.make("<i>{$match<format-text>.made}</i>");
+    $match.make("<em>{$match<format-text>.made}</em>");
   }
 
   multi method format-code:bold ($match)
   {
-    $match.make("<b>{$match<format-text>.made}</b>");
+    $match.make("<strong>{$match<format-text>.made}</strong>");
   }
 
   multi method format-code:code ($match)
@@ -190,7 +190,7 @@ class Pod::Perl5::ToHTML
   # spec says to display in italics
   multi method format-code:filename ($match)
   {
-    $match.make("<i>{$match<format-text>.made}</i>");
+    $match.make("<em>{$match<format-text>.made}</em>");
   }
 
   # singleline shouldn't break across lines ...
