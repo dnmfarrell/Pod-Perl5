@@ -1,12 +1,12 @@
 class Pod::Perl5::ToHTML
 {
-  # meta directives like encoding
+  # for meta directives like encoding
   has %.meta;
 
   my $indent_level = 0;
   my $indent_text  = '  ';
 
-  sub stringify-match ($match)
+  method stringify-match ($match)
   {
     my $pod = '';
     for $match.caps -> $value
@@ -19,8 +19,8 @@ class Pod::Perl5::ToHTML
   method TOP ($match)
   {
     my $head = %.meta.elems
-      ?? "\n<head>\n{[~] (for %.meta.values {$_ ~="\n"}).values}</head>" !! '';
-    my $body = "\n<body>\n{stringify-match($match)}\n</body>";
+      ?? "\n<head>\n{%.meta.values.join("\n")}\n</head>" !! '';
+    my $body = "\n<body>\n{self.stringify-match($match)}\n</body>";
     my $html = "<html>{$head}{$body}\n</html>\n";
     # remove double blank lines
     $match.make($html.subst(/\n ** 3..*/, {"\n\n"}, :g));
@@ -28,7 +28,7 @@ class Pod::Perl5::ToHTML
 
   method pod-section ($match)
   {
-    $match.make(stringify-match($match));
+    $match.make(self.stringify-match($match));
   }
 
   #######################
@@ -66,12 +66,12 @@ class Pod::Perl5::ToHTML
 
   method format-text ($match)
   {
-    $match.make(stringify-match($match));
+    $match.make(self.stringify-match($match));
   }
 
   method multiline-text ($match)
   {
-    $match.make(stringify-match($match).subst(/\n+$/, ''));
+    $match.make(self.stringify-match($match).subst(/\n+$/, ''));
   }
 
   method section ($match) { $match.make($match.Str) }
@@ -150,12 +150,12 @@ class Pod::Perl5::ToHTML
         && $match<_item>[0]<bullet-point>.Str ~~ /^<[0..9]>+$/)
     {
       $match.make("\n{$indent_text x $indent_level}<ol>{
-        stringify-match($match) ~ $indent_text x $indent_level}</ol>\n");
+        self.stringify-match($match) ~ $indent_text x $indent_level}</ol>\n");
     }
     else
     {
       $match.make("\n{$indent_text x $indent_level}<ul>{
-        stringify-match($match) ~ $indent_text x $indent_level}</ul>\n");
+        self.stringify-match($match) ~ $indent_text x $indent_level}</ul>\n");
     }
   }
 
@@ -169,7 +169,7 @@ class Pod::Perl5::ToHTML
 
   method _item ($match)
   {
-    $match.make($indent_text x $indent_level ~ "<li>{ stringify-match($match).subst(/\n+$/, '') }</li>\n");
+    $match.make($indent_text x $indent_level ~ "<li>{ self.stringify-match($match).subst(/\n+$/, '') }</li>\n");
   }
 
   method command-block:pod ($match) { $match.make('') }
