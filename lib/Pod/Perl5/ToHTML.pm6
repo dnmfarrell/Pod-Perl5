@@ -1,7 +1,11 @@
 class Pod::Perl5::ToHTML
 {
   # for meta directives like encoding
-  has %.meta;
+  has @.meta;
+
+  # these attributes will be populated after a parse
+  has $.head is rw;
+  has $.body is rw;
 
   my $indent_level = 0;
   my $indent_text  = '  ';
@@ -18,12 +22,9 @@ class Pod::Perl5::ToHTML
 
   method TOP ($match)
   {
-    my $head = %.meta.elems
-      ?? "\n<head>\n{%.meta.values.join("\n")}\n</head>" !! '';
-    my $body = "\n<body>\n{self.stringify-match($match)}\n</body>";
-    my $html = "<html>{$head}{$body}\n</html>\n";
-    # remove double blank lines
-    $match.make($html.subst(/\n ** 3..*/, {"\n\n"}, :g));
+    $.head = @.meta.elems ?? @.meta.values.join("\n") !! '';
+    $.body = self.stringify-match($match).subst(/\n ** 3..*/, {"\n\n"}, :g);
+    $match.make("<html>\n{$.head ?? "<head>\n" ~ $.head ~ "\n</head>\n" !! ''}<body>\n{$.body}\n</body>\n</html>\n");
   }
 
   method pod-section ($match)
@@ -136,7 +137,7 @@ class Pod::Perl5::ToHTML
     my $html_encoding = $pod_encoding eq 'utf8' ?? 'UTF-8' !! $pod_encoding;
 
     # save in meta to be used in <head> later
-    %.meta<charset> = "<meta charset=\"$html_encoding\">";
+    @.meta.push("<meta charset=\"$html_encoding\">");
 
     # make an empty string so the encoding is not returned inline
     $match.make('');
